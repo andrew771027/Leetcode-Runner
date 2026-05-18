@@ -1,17 +1,18 @@
-import argparse
+import typer
+from executor import run_all_tests, run_tests
 
-from executor import run_tests
+app = typer.Typer()
 
+@app.command()
+def test(category: str, problem: str):
+    "Run tests for a single problem."
+    run_tests(category, problem)
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("command")
-    parser.add_argument("problem")
+@app.command()
+def test_all():
+    "Run all problems"
+    run_all_tests()
 
-    args = parser.parse_args()
-
-    if args.command == "test":
-        run_tests(args.problem)
 
 if __name__ == "__main__":
-    main()
+    app()
