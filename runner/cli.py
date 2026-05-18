@@ -1,17 +1,19 @@
 import typer
-from executor import run_all_tests, run_tests
+
+from runner.core import Runner
 
 app = typer.Typer()
+runner = Runner()
 
 @app.command()
 def test(category: str, problem: str):
     "Run tests for a single problem."
-    run_tests(category, problem)
+    runner.run_test(category, problem)
 
 @app.command()
 def test_all():
     "Run all problems"
-    run_all_tests()
+    runner.run_all_tests()
 
 
 if __name__ == "__main__":

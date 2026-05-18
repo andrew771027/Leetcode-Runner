@@ -6,8 +6,8 @@ VENV := $(shell $(POETRY) env info -p)
 
 test:
 	@. "$(VENV)/bin/activate" && \
-	python ./runner/cli.py test array test_lc_001_two_sum
+	python -m runner.cli test array test_lc_001_two_sum
 
 test_all:
 	@. "$(VENV)/bin/activate" && \
-	python3 ./runner/cli.py test-all
+	python -m runner.cli test-all
