@@ -1,9 +1,11 @@
 import typer
 
+from runner.backends import SubprocessBackend
 from runner.core import Runner
 
 app = typer.Typer()
-runner = Runner()
+backend = SubprocessBackend()
+runner = Runner(backend)
 
 @app.command()
 def test(category: str, problem: str):
