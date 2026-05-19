@@ -27,6 +27,9 @@ class SubprocessBackend(ExecutionBackend):
             success=(result.returncode == 0),
             return_code=result.returncode,
             duration=duration,
+            stdout=result.stdout,
+            stderr=result.stderr,
+            error=str(result.returncode),
         )
 
 

@@ -9,3 +9,6 @@ class TestResult:
     success: bool
     return_code: int
     duration: float | None = None
+    stdout: str = ""
+    stderr: str = ""
+    error: str = ""

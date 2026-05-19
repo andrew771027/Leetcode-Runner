@@ -1,0 +1,24 @@
+from typing import List
+
+from runner.models import TestResult
+
+
+class Analytics:
+
+    def summary(self, results: List[TestResult]):
+        total = len(results)
+
+        passed = sum(1 for r in results if r.success)
+
+        avg_time = sum(r.duration for r in results) / total
+
+        slowest = max(results, key=lambda r: r.duration)
+
+        return {
+            "total": total,
+            "passed": passed,
+            "failed": total - passed,
+            "pass_rate": passed / total,
+            "avg_time": avg_time,
+            "slowest": slowest,
+        }

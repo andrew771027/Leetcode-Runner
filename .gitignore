@@ -7,3 +7,4 @@ __pycache__/
 
 report.json
 history.jsonl
+event.jsonl
