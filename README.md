@@ -1,79 +1,201 @@
-# LeetCode Runner — v1 → v3 Architecture Evolution
+# 📘 LeetCode Runner — v1 → v3 Architecture Evolution
+
+---
 
 ## 🎯 專案目標
-建立一個可擴展的 LeetCode 測試框架，支援：
-- 自動執行測試（pytest）
-- Benchmark / Coverage
-- 多種執行環境（local / docker / CI）
+
+建立一個可擴展的 LeetCode 測試框架：
+
+- CLI 控制測試執行
+- 支援 pytest / benchmark / coverage
+- 支援多種 execution backend（local / docker / CI）
 
 ---
 
-# 🥚 v1 — 初始版本（Basic CLI + subprocess）
+# 🥚 v1 — Basic Script Version
 
-## 🧩 架構
+## 架構
+
+```
 CLI (argparse)
-    ↓
+   ↓
 subprocess
-    ↓
+   ↓
 pytest
+```
 
-## ⚠️ 問題
-- CLI 可讀性差
-- Execution Environment 問題
-- 架構耦合
+## CLI (argparse)
 
----
+```python
+import argparse
 
-# 🧱 v2 — 分層架構（Layered Architecture）
+parser = argparse.ArgumentParser()
+parser.add_argument("--problem")
+args = parser.parse_args()
 
-## 🧩 架構設計
-CLI → Runner Core → Modules → Execution Layer
+print(f"Run problem: {args.problem}")
+```
 
-## 🎯 改進
-- 分層設計（SoC）
-- 使用 Typer
-- 模組化功能
+## 執行 pytest
 
-## ⚠️ 問題
-- Execution Layer 仍耦合
-- 無法支援 Docker / Remote / CI
+```python
+import subprocess
 
----
+subprocess.run(["python", "-m", "pytest"])
+```
 
-# 🚀 v3 — 抽象化架構（Strategy Pattern）
+## 問題
 
-## 🧩 架構設計
-CLI → Orchestrator → Execution Backend → Tools
-
-## 🧠 核心設計
-- Orchestrator = 純邏輯
-- Execution Backend = 可替換
-
-## 🔌 Backend 類型
-- SubprocessBackend
-- DockerBackend
-- RemoteBackend
-- CIBackend
-
-## 🎯 設計價值
-- 解耦
-- 可擴展
-- 可測試
-- Strategy Pattern
+- CLI boilerplate 太多
+- execution tightly coupled
+- environment inconsistency (PATH issue)
 
 ---
 
-# 📊 三版本比較
+# 🧱 v2 — Layered Architecture
 
-| 面向 | v1 | v2 | v3 |
-|------|----|----|----|
-| 架構 | 無 | 分層 | 抽象 |
-| 擴展性 | ❌ | ⚠️ | ✅ |
-| 可測試 | ❌ | ⚠️ | ✅ |
+## 架構
+
+```
+CLI (Typer)
+   ↓
+Runner Core (Orchestrator)
+   ↓
+Test / Benchmark / Coverage
+   ↓
+Execution Layer
+```
+
+## CLI (Typer)
+
+```python
+import typer
+
+app = typer.Typer()
+
+@app.command()
+def run(problem: str):
+    print(f"Running {problem}")
+
+if __name__ == "__main__":
+    app()
+```
+
+## Runner Core
+
+```python
+class Runner:
+    def run_tests(self):
+        print("Running tests...")
+```
+
+## 問題
+
+- Execution layer still coupled
+- cannot swap docker / remote execution
 
 ---
 
-# 🧭 下一步（v3.1）
-- Backend 強化（timeout / retry）
-- logging / error handling
-- plugin system
+# 🚀 v3 — Strategy Pattern Architecture
+
+## 架構
+
+```
+CLI
+ ↓
+Orchestrator (pure logic)
+ ↓
+Execution Backend (pluggable)
+ ↓
+pytest / tools
+```
+
+---
+
+## Orchestrator
+
+```python
+class Orchestrator:
+    def __init__(self, backend):
+        self.backend = backend
+
+    def run_tests(self):
+        return self.backend.run("python -m pytest")
+```
+
+---
+
+## Backend Interface
+
+```python
+from abc import ABC, abstractmethod
+
+class ExecutionBackend(ABC):
+    @abstractmethod
+    def run(self, command: str):
+        pass
+```
+
+---
+
+## Subprocess Backend
+
+```python
+import subprocess
+
+class SubprocessBackend(ExecutionBackend):
+    def run(self, command: str):
+        return subprocess.run(command, shell=True)
+```
+
+---
+
+## Docker Backend
+
+```python
+import subprocess
+
+class DockerBackend(ExecutionBackend):
+    def run(self, command: str):
+        cmd = f"docker run my-image {command}"
+        return subprocess.run(cmd, shell=True)
+```
+
+---
+
+## CLI Example
+
+```python
+import typer
+
+app = typer.Typer()
+
+@app.command()
+def test(use_docker: bool = False):
+
+    backend = DockerBackend() if use_docker else SubprocessBackend()
+
+    orchestrator = Orchestrator(backend)
+    orchestrator.run_tests()
+
+if __name__ == "__main__":
+    app()
+```
+
+---
+
+# 📊 Summary
+
+| Version | Architecture | Key Idea |
+|--------|-------------|---------|
+| v1 | Script | simple automation |
+| v2 | Layered | separation of concerns |
+| v3 | Strategy Pattern | pluggable backend |
+
+---
+
+# 🎯 Core Idea
+
+LeetCode Runner =
+
+> A pluggable execution framework for test orchestration
