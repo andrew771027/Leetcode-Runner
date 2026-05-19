@@ -16,15 +16,6 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
-    hooks:
-      - id: flake8
-        exclude: migrations/
-        args:
-          - --max-line-length=100
-          - --ignore=E131
-
   - repo: https://github.com/PyCQA/isort
     rev: 7.0.0
     hooks:
@@ -33,11 +24,18 @@ repos:
         args:
           - --line-length=100
 
-  - repo: https://github.com/pre-commit/mirrors-yapf
-    rev: v0.32.0
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
     hooks:
-      - id: yapf
+      - id: black
+        args:
+          - --line-length=100
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
         exclude: migrations/
         args:
-          - column_limit = 100
-        additional_dependencies: [toml]
+          - --max-line-length=100
+          - --ignore=E131,E203

@@ -14,7 +14,14 @@ class Reporter:
             print(f"{status} {r.category} {r.problem} ({r.duration})")
 
     @staticmethod
-    def to_json(results: List[TestResult], path:str="report.json"):
+    def print_rank(results: List[TestResult]):
+        print("\n=== RANKING ===")
+        for i, r in enumerate(results, 1):
+            status = "✅ PASS" if r.success else "❌ FAIL"
+            print(f"{i}. {r.name:<25} {status} {r.duration:.3f}s")
+
+    @staticmethod
+    def to_json(results: List[TestResult], path: str = "report.json"):
         data = [r.__dict__ for r in results]
 
         with open(path, "w") as f:
