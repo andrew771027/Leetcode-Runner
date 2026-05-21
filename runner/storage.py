@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from runner.models import TestResult
+from models.test_result import TestResult
 
 
 class Storage:

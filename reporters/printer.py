@@ -1,10 +1,10 @@
 import json
 from typing import List
 
-from runner.models import TestResult
+from models.test_result import TestResult
 
 
-class Reporter:
+class Printer:
 
     @staticmethod
     def print(results: List[TestResult]):

@@ -1,15 +1,9 @@
 import subprocess
 import time
-from abc import ABC, abstractmethod
 from typing import List
 
-from runner.models import TestResult
-
-
-class ExecutionBackend(ABC):
-    @abstractmethod
-    def run(self, cmd: List[str]) -> int:
-        pass
+from backends.base_backend import ExecutionBackend
+from models.test_result import TestResult
 
 
 class SubprocessBackend(ExecutionBackend):
@@ -31,8 +25,3 @@ class SubprocessBackend(ExecutionBackend):
             stderr=result.stderr,
             error=str(result.returncode),
         )
-
-
-class DockerBackend(ExecutionBackend):
-    def run(self, cmd: List[str]) -> int:
-        pass

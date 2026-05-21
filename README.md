@@ -1,201 +1,191 @@
-# 📘 LeetCode Runner — v1 → v3 Architecture Evolution
+::: card
+# 🚀 LeetCode Runner
 
----
+**從 Script 到 Test Infrastructure（v1 → v3.4）**
+:::
 
+::: card
 ## 🎯 專案目標
 
-建立一個可擴展的 LeetCode 測試框架：
+打造一個可擴展、可替換 execution、可測試的 LeetCode 測試框架。
 
-- CLI 控制測試執行
-- 支援 pytest / benchmark / coverage
-- 支援多種 execution backend（local / docker / CI）
+-   CLI 一鍵執行測試
+-   支援 pytest / benchmark / coverage
+-   支援 local / docker / CI / remote
+:::
 
----
+::: card
+## 🧠 我的設計思考
 
-# 🥚 v1 — Basic Script Version
+::: highlight
+pytest = test runner\
+LeetCode Runner = orchestration layer
+:::
 
-## 架構
+一開始只是想寫 script，但後來發現：
 
-```
-CLI (argparse)
-   ↓
-subprocess
-   ↓
-pytest
-```
+-   我其實在做 runner 的上層
+-   這是一個 framework，而不是工具
+:::
 
-## CLI (argparse)
+::: card
+## ⚠️ 核心問題：Execution Environment
 
-```python
-import argparse
+    pytest ❌（依賴 PATH）
+    python -m pytest ✅（依賴 interpreter）
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--problem")
-args = parser.parse_args()
+問題：
 
-print(f"Run problem: {args.problem}")
-```
+-   subprocess 使用當前 virtualenv
+-   但測試可能在另一個 repo
+:::
 
-## 執行 pytest
+::: card
+## 🥚 v1 --- Script
 
-```python
-import subprocess
+    CLI (argparse)
+       ↓
+    subprocess
+       ↓
+    pytest
 
-subprocess.run(["python", "-m", "pytest"])
-```
+    import argparse
+    import subprocess
 
-## 問題
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--problem")
+    args = parser.parse_args()
 
-- CLI boilerplate 太多
-- execution tightly coupled
-- environment inconsistency (PATH issue)
+    subprocess.run(["python", "-m", "pytest"])
 
----
+問題：
 
-# 🧱 v2 — Layered Architecture
+-   耦合嚴重
+-   不可擴展
+:::
 
-## 架構
+::: card
+## 🧱 v2 --- 分層架構
 
-```
-CLI (Typer)
-   ↓
-Runner Core (Orchestrator)
-   ↓
-Test / Benchmark / Coverage
-   ↓
-Execution Layer
-```
+    CLI (Typer)
+     ↓
+    Runner Core
+     ↓
+    Execution Layer
 
-## CLI (Typer)
+    class Runner:
+        def run_tests(self):
+            print("running...")
 
-```python
-import typer
+問題：
 
-app = typer.Typer()
+-   execution 還是寫死
+:::
 
-@app.command()
-def run(problem: str):
-    print(f"Running {problem}")
+::: card
+## 🚀 v3 --- Strategy Pattern
 
-if __name__ == "__main__":
-    app()
-```
+    CLI
+     ↓
+    Orchestrator
+     ↓
+    Execution Backend
+     ↓
+    pytest
 
-## Runner Core
+    class ExecutionBackend:
+        def run(self, cmd):
+            pass
 
-```python
-class Runner:
-    def run_tests(self):
-        print("Running tests...")
-```
+    class Orchestrator:
+        def __init__(self, backend):
+            self.backend = backend
 
-## 問題
+        def run_tests(self):
+            return self.backend.run("pytest")
 
-- Execution layer still coupled
-- cannot swap docker / remote execution
+突破：
 
----
+-   execution 可替換
+-   支援 docker / CI
+:::
 
-# 🚀 v3 — Strategy Pattern Architecture
+::: card
+## 🧪 v3.1 --- 工程化
 
-## 架構
+    from dataclasses import dataclass
 
-```
-CLI
- ↓
-Orchestrator (pure logic)
- ↓
-Execution Backend (pluggable)
- ↓
-pytest / tools
-```
+    @dataclass
+    class ExecutionResult:
+        return_code: int
+        stdout: str
+        stderr: str
 
----
+提升：
 
-## Orchestrator
+-   可觀測性
+-   錯誤處理
+:::
 
-```python
-class Orchestrator:
-    def __init__(self, backend):
-        self.backend = backend
+::: card
+## 🧠 v3.2 --- 平台化
 
-    def run_tests(self):
-        return self.backend.run("python -m pytest")
-```
+    Execution Platform
+     ├── Local
+     ├── Docker
+     └── CI
 
----
+關鍵：
 
-## Backend Interface
+-   解決環境問題
+-   支援多 execution
+:::
 
-```python
-from abc import ABC, abstractmethod
+::: card
+## 🧠 v3.3 --- Multi Repo
 
-class ExecutionBackend(ABC):
-    @abstractmethod
-    def run(self, command: str):
-        pass
-```
+    class ExecutionContext:
+        repo_path: str
+        runtime: str
 
----
+解決：
 
-## Subprocess Backend
+-   不同 repo dependency
+:::
 
-```python
-import subprocess
+::: card
+## 🧠 v3.4 --- Test Infra
 
-class SubprocessBackend(ExecutionBackend):
-    def run(self, command: str):
-        return subprocess.run(command, shell=True)
-```
+    CLI
+     ↓
+    Orchestrator
+     ↓
+    Execution Platform
+     ↓
+    pytest
 
----
+能力：
 
-## Docker Backend
+-   execution abstraction
+-   CI integration
+-   環境隔離
+:::
 
-```python
-import subprocess
+::: card
+## 💬 我的心得
 
-class DockerBackend(ExecutionBackend):
-    def run(self, command: str):
-        cmd = f"docker run my-image {command}"
-        return subprocess.run(cmd, shell=True)
-```
+-   抽象比實作重要
+-   execution 本質是 strategy
+-   infra 問題比想像早出現
+-   設計能力 \> coding
+:::
 
----
+::: card
+## 🏁 總結
 
-## CLI Example
-
-```python
-import typer
-
-app = typer.Typer()
-
-@app.command()
-def test(use_docker: bool = False):
-
-    backend = DockerBackend() if use_docker else SubprocessBackend()
-
-    orchestrator = Orchestrator(backend)
-    orchestrator.run_tests()
-
-if __name__ == "__main__":
-    app()
-```
-
----
-
-# 📊 Summary
-
-| Version | Architecture | Key Idea |
-|--------|-------------|---------|
-| v1 | Script | simple automation |
-| v2 | Layered | separation of concerns |
-| v3 | Strategy Pattern | pluggable backend |
-
----
-
-# 🎯 Core Idea
-
-LeetCode Runner =
-
-> A pluggable execution framework for test orchestration
+::: highlight
+LeetCode Runner =\
+\
+A pluggable execution platform for test orchestration
+:::
+:::

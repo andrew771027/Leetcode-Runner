@@ -1,53 +1,82 @@
+import os
+
 import typer
 
-from runner.aggregator import Aggregator
-from runner.analytics import Analytics
-from runner.backends import SubprocessBackend
+from analytics.aggregator import Aggregator
+from analytics.metrics import Meterics
+from backends.docker_backend import DockerBackend
+from backends.subprocess_backend import SubprocessBackend
+from models.config import RunnerConfig
+from models.test_result import TestResult
+from reporters.printer import Printer
 from runner.core import Runner
 from runner.discovery import Discovery
 from runner.logger import EventLogger
-from runner.models import TestResult
-from runner.report import Reporter
 
-BASE_PATH = "/Users/poyuan/Desktop/andrew771027/LeetCode/tests"
+DEFAULT_BASE_PATH = os.getenv(
+    "LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode/tests"
+)
+
 
 app = typer.Typer()
 backend = SubprocessBackend()
-discovery = Discovery(BASE_PATH)
 logger = EventLogger()
-analytics = Analytics()
-runner = Runner(
-    base_path=BASE_PATH, backend=backend, discovery=discovery, logger=logger, analytics=analytics
-)
+metrics = Meterics()
+
 agg = Aggregator()
 
 
-reporter = Reporter()
-
-
 @app.command()
-def test(category: str, problem: str):
+def test(
+    category: str = typer.Option(..., "--category", help="Category name"),
+    problem: str = typer.Option(..., "--problem", help="Problem name"),
+    base_path: str = typer.Option(DEFAULT_BASE_PATH, "--base-path", help="Base path for tests"),
+):
     "Run tests for a single problem."
+    config = RunnerConfig(base_path, False)
+
+    runner = Runner(
+        config=config, backend=backend, discovery=Discovery(config.base_path), logger=logger
+    )
+
     results: TestResult = runner.run_test(category, problem)
 
-    Reporter.print([results])
-    Reporter.to_json([results])
+    Printer.print([results])
+    Printer.to_json([results])
 
 
 @app.command()
-def test_all():
+def test_all(
+    base_path: str = typer.Option(DEFAULT_BASE_PATH, "--base-path", help="Base path for tests"),
+    docker: bool = typer.Option(False, "--docker/--no-docker", help="Use Docker backend"),
+):
     "Run all problems"
+
+    config = RunnerConfig(base_path, docker)
+
+    backend = DockerBackend() if config.docker else SubprocessBackend()
+
+    runner = Runner(
+        config=config,
+        backend=backend,
+        discovery=Discovery(config.base_path),
+        logger=logger,
+    )
+
     results = runner.run_all_tests()
+
     ranked = agg.rank(results)
     summary = agg.summary(results)
-    reporter.print_rank(ranked)
-    analytics = runner.analyze(results)
+
+    metric = metrics.summary(results)
+
+    Printer.print_rank(ranked)
 
     print("\n📊 Summary")
     print(summary)
 
     print("\n📊 Analytics")
-    print(analytics)
+    print(metric)
 
 
 if __name__ == "__main__":

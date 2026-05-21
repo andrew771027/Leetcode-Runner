@@ -1,9 +1,9 @@
 from typing import List
 
-from runner.models import TestResult
+from models.test_result import TestResult
 
 
-class Analytics:
+class Meterics:
 
     def summary(self, results: List[TestResult]):
         total = len(results)
@@ -20,5 +20,5 @@ class Analytics:
             "failed": total - passed,
             "pass_rate": passed / total,
             "avg_time": avg_time,
-            "slowest": slowest,
+            "slowest": {"name": slowest.name, "duration": slowest.duration},
         }

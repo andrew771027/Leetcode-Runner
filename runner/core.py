@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import List
 
+from models.config import RunnerConfig
+from models.test_result import TestResult
 from runner.benchmark import Benchmark
-from runner.models import TestResult
 from runner.parallel import ParallelExecutor
 from runner.storage import Storage
 from runner.tools import run_file, run_pytest
@@ -10,15 +11,14 @@ from runner.tools import run_file, run_pytest
 
 class Runner:
 
-    def __init__(self, base_path: str, backend, discovery, logger, analytics):
-        self.base_path = base_path
+    def __init__(self, config: RunnerConfig, backend, discovery, logger):
+        self.base_path = config.base_path
         self.backend = backend
         self.discovery = discovery
         self.parallel = ParallelExecutor()
         self.benchmark = Benchmark()
         self.storage = Storage()
         self.logger = logger
-        self.analytics = analytics
 
     def run_test(self, category_name: str, problem_name: str):
         path = f"{self.base_path}/{category_name}/{problem_name}.py"
@@ -39,10 +39,12 @@ class Runner:
 
     def _run_test_file(self, test_file: tuple):
         category = test_file[0]
+        test_path = test_file[1]
         problem = Path(test_file[1]).stem
-        cmd = run_file(test_file[1])
 
-        result, duration = self.benchmark.measure(self.backend.run, cmd, category, problem)
+        result, duration = self.benchmark.measure(
+            self.backend.run, self.base_path, test_path, problem  # repo_path
+        )
 
         # Update duration in result
         result.duration = duration
@@ -65,6 +67,3 @@ class Runner:
             self.storage.append(r)
 
         return results
-
-    def analyze(self, results: List[TestResult]):
-        return self.analytics.summary(results)
