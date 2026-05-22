@@ -2,11 +2,11 @@ from pathlib import Path
 from typing import List
 
 from models.config import RunnerConfig
+from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
 from runner.benchmark import Benchmark
 from runner.parallel import ParallelExecutor
 from runner.storage import Storage
-from runner.tools import run_file, run_pytest
 
 
 class Runner:
@@ -20,46 +20,22 @@ class Runner:
         self.storage = Storage()
         self.logger = logger
 
-    def run_test(self, category_name: str, problem_name: str):
-        path = f"{self.base_path}/{category_name}/{problem_name}.py"
+    def run_test(self, category: str, problem: str) -> TestResult:
 
-        cmd = run_pytest(path)
-
-        result = self.backend.run(cmd, category_name, problem_name)
-
-        self.logger.log(
-            {
-                "type": "test_run",
-                "name": f"{category_name} {problem_name}",
-                "success": result.success,
-                "duration": result.duration,
-            }
+        request = ExecutionRequest(
+            name=problem,
+            category=category,
+            repo_path=self.base_path,
+            test_path=f"tests/{category}/{problem}.py",
         )
+
+        result = self.backend.run(request)
+
+        self._log_result(result)
+
         return result
 
-    def _run_test_file(self, test_file: tuple):
-        category = test_file[0]
-        test_path = test_file[1]
-        problem = Path(test_file[1]).stem
-
-        result, duration = self.benchmark.measure(
-            self.backend.run, self.base_path, test_path, problem  # repo_path
-        )
-
-        # Update duration in result
-        result.duration = duration
-
-        self.logger.log(
-            {
-                "type": "test_run",
-                "name": f"{category} {problem}",
-                "success": result.success,
-                "duration": result.duration,
-            }
-        )
-        return result
-
-    def run_all_tests(self):
+    def run_all_tests(self) -> List[TestResult]:
         files = self.discovery.all_tests()
         results = self.parallel.run(self._run_test_file, files)
 
@@ -67,3 +43,33 @@ class Runner:
             self.storage.append(r)
 
         return results
+
+    def _run_test_file(self, test_file: tuple):
+        category = test_file[0]
+        problem = Path(test_file[1]).stem
+
+        request = ExecutionRequest(
+            name=problem,
+            category=category,
+            repo_path=self.base_path,
+            test_path=f"tests/{category}/{problem}.py",
+        )
+
+        result, duration = self.benchmark.measure(self.backend.run, request)  # repo_path
+
+        # Update duration in result
+        result.duration = duration
+
+        self._log_result(result)
+
+        return result
+
+    def _log_result(self, result: TestResult):
+        self.logger.log(
+            {
+                "type": "test_run",
+                "name": result.name,
+                "success": result.success,
+                "duration": result.duration,
+            }
+        )

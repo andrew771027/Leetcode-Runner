@@ -3,7 +3,7 @@ import os
 import typer
 
 from analytics.aggregator import Aggregator
-from analytics.metrics import Meterics
+from analytics.metrics import Metrics
 from backends.docker_backend import DockerBackend
 from backends.subprocess_backend import SubprocessBackend
 from models.config import RunnerConfig
@@ -13,15 +13,13 @@ from runner.core import Runner
 from runner.discovery import Discovery
 from runner.logger import EventLogger
 
-DEFAULT_BASE_PATH = os.getenv(
-    "LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode/tests"
-)
+DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 
 
 app = typer.Typer()
 backend = SubprocessBackend()
 logger = EventLogger()
-metrics = Meterics()
+metrics = Metrics()
 
 agg = Aggregator()
 

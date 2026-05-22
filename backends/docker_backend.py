@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 
 from backends.base_backend import ExecutionBackend
+from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
 
 
@@ -11,45 +12,34 @@ class DockerBackend(ExecutionBackend):
     def __init__(self, image: str = "leetcode-runner-base"):
         self.image = image
 
-    def run(self, repo_path: str, test_path: str, name: str) -> TestResult:
-        start = time.perf_counter()
+    def run(self, request: ExecutionRequest) -> TestResult:
 
-        repo = Path(repo_path).resolve()
-
-        start = time.perf_counter()
+        repo = Path(request.repo_path).resolve()
 
         cmd = [
             "docker",
             "run",
             "--rm",
-            # mount repo
             "-v",
             f"{repo}:/workspace",
-            # working dir
             "-w",
             "/workspace",
             self.image,
             "bash",
             "-c",
-            ("poetry install --no-interaction && " f"poetry run pytest {test_path} -q"),
+            ("poetry install --no-interaction && " f"poetry run pytest {request.test_path} -q"),
         ]
+
+        start = time.perf_counter()
 
         process = subprocess.run(cmd, capture_output=True, text=True)
 
         duration = time.perf_counter() - start
 
-        # derive category and problem from test_path when possible
-        try:
-            category = Path(test_path).parent.name
-            problem = Path(test_path).stem
-        except Exception:
-            category = ""
-            problem = name or ""
-
         return TestResult(
-            name=name,
-            category=category,
-            problem=problem,
+            name=request.name,
+            category=request.category,
+            problem=request.name,
             success=(process.returncode == 0),
             return_code=process.returncode,
             duration=duration,

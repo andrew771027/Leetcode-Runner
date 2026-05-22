@@ -3,7 +3,7 @@ from typing import List
 from models.test_result import TestResult
 
 
-class Meterics:
+class Metrics:
 
     def summary(self, results: List[TestResult]):
         total = len(results)
