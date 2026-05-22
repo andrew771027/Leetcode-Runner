@@ -1,19 +1,22 @@
-[project]
+[tool.poetry]
 name = "leetcode-runner"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Andrew Wang",email = "andew771027@gmail.com"}
-]
+authors = ["Andrew Wang <andew771027@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = [
-    "pre-commit (>=4.6.0,<5.0.0)",
-    "pytest (>=9.0.3,<10.0.0)",
-    "typer (>=0.25.1,<0.26.0)",
-    "hypothesis (>=6.152.8,<7.0.0)"
+packages = [
+    {include = "runner"},
+    {include = "backends"},
+    {include = "analytics"},
+    {include = "models"},
+    {include = "reporters"}
 ]
 
+[tool.poetry.dependencies]
+python = ">=3.14"
+pre-commit = ">=4.6.0,<5.0.0"
+pytest = ">=9.0.3,<10.0.0"
+typer = ">=0.25.1,<0.26.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

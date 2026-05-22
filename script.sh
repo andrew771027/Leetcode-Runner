@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-poetry env activate
-
-source /Users/poyuan/Library/Caches/pypoetry/virtualenvs/leetcode-runner-ZFzlOtzT-py3.14/bin/activate
+# This script must be sourced, not executed: source script.sh
+# Activate Poetry virtual environment
+source .venv/bin/activate
