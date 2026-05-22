@@ -2,16 +2,15 @@ import os
 
 import typer
 
-from analytics.aggregator import Aggregator
 from analytics.metrics import Metrics
 from backends.docker_backend import DockerBackend
 from backends.subprocess_backend import SubprocessBackend
-from models.config import RunnerConfig
 from models.test_result import TestResult
 from reporters.printer import Printer
+from runner.config import RunnerConfig
 from runner.core import Runner
-from runner.discovery import Discovery
 from runner.logger import EventLogger
+from utils.discovery import Discovery
 
 DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 
@@ -20,8 +19,6 @@ app = typer.Typer()
 backend = SubprocessBackend()
 logger = EventLogger()
 metrics = Metrics()
-
-agg = Aggregator()
 
 
 @app.command()
@@ -63,18 +60,18 @@ def test_all(
 
     results = runner.run_all_tests()
 
-    ranked = agg.rank(results)
-    summary = agg.summary(results)
+    ranked = metrics.rank(results)
+    short_summary = metrics.short_summary(results)
 
-    metric = metrics.summary(results)
+    precise_summary = metrics.precise_summary(results)
 
     Printer.print_rank(ranked)
 
-    print("\n📊 Summary")
-    print(summary)
+    print("\n📊 Short Summary")
+    Printer.print_summary(short_summary)
 
-    print("\n📊 Analytics")
-    print(metric)
+    print("\n📊 Precise Summary")
+    Printer.print_summary(precise_summary)
 
 
 if __name__ == "__main__":

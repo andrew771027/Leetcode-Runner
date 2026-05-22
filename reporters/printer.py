@@ -28,3 +28,8 @@ class Printer:
             json.dump(data, f, indent=2)
 
         print(f"\n📄 JSON report saved to {path}")
+
+    @staticmethod
+    def print_summary(summary):
+        pretty_json = json.dumps(summary, indent=4, sort_keys=True)
+        print(pretty_json)

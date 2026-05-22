@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import List
 
-from models.config import RunnerConfig
+from analytics.benchmark import Benchmark
+from analytics.output.storage import Storage
+from infra.parallel import ParallelExecutor
 from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
-from runner.benchmark import Benchmark
-from runner.parallel import ParallelExecutor
-from runner.storage import Storage
+from runner.config import RunnerConfig
 
 
 class Runner:
