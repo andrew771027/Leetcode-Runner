@@ -1,9 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, List
 
 
 class ParallelExecutor:
 
-    def run(self, func, items, max_workers: int = 4):
+    def run(self, func: Callable, items: List[Any], max_workers: int = 4):
         results = []
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:

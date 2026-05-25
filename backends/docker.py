@@ -2,7 +2,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from backends.base_backend import ExecutionBackend
+from backends.base import ExecutionBackend
 from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
 

@@ -1,18 +1,14 @@
-import json
-from datetime import datetime
+from typing import List
 
 from models.test_result import TestResult
 
 
 class Storage:
+    def __init__(self):
+        self._data: List[TestResult] = []
 
-    def append(self, result: TestResult, file="history.jsonl"):
-        data = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "name": result.name,
-            "success": result.success,
-            "duration": result.duration,
-        }
+    def append(self, result: TestResult):
+        self._data.append(result)
 
-        with open(file, "a") as f:
-            f.write(json.dumps(data) + "\n")
+    def all(self) -> List[TestResult]:
+        return self._data

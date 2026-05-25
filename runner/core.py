@@ -1,75 +1,44 @@
 from pathlib import Path
 from typing import List
 
-from analytics.benchmark import Benchmark
-from analytics.output.storage import Storage
-from infra.parallel import ParallelExecutor
-from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
 from runner.config import RunnerConfig
-
+from backends.base import ExecutionBackend
+from runner.request_factory import RequestFactory
 
 class Runner:
 
-    def __init__(self, config: RunnerConfig, backend, discovery, logger):
-        self.base_path = config.base_path
+    def __init__(self, 
+                 config: RunnerConfig, 
+                 backend: ExecutionBackend, 
+                 discovery,
+                 executor, 
+                 request_factory:RequestFactory):
+        self.config = config
         self.backend = backend
         self.discovery = discovery
-        self.parallel = ParallelExecutor()
-        self.benchmark = Benchmark()
-        self.storage = Storage()
-        self.logger = logger
-
+        self.executor = executor
+        self.request_factory = request_factory
+    
     def run_test(self, category: str, problem: str) -> TestResult:
 
-        request = ExecutionRequest(
-            name=problem,
-            category=category,
-            repo_path=self.base_path,
-            test_path=f"tests/{category}/{problem}.py",
-        )
+        request = self.request_factory.build(category=category, problem=problem)
 
-        result = self.backend.run(request)
-
-        self._log_result(result)
-
-        return result
+        return self.backend.run(request)
 
     def run_all_tests(self) -> List[TestResult]:
-        files = self.discovery.all_tests()
-        results = self.parallel.run(self._run_test_file, files)
+        files = self.discovery.find_all()
 
-        for r in results:
-            self.storage.append(r)
-
-        return results
-
-    def _run_test_file(self, test_file: tuple):
-        category = test_file[0]
-        problem = Path(test_file[1]).stem
-
-        request = ExecutionRequest(
-            name=problem,
-            category=category,
-            repo_path=self.base_path,
-            test_path=f"tests/{category}/{problem}.py",
+        return self.executor.run(
+            self._execute,
+            files,
+            max_workers=self.config.workers,
         )
 
-        result, duration = self.benchmark.measure(self.backend.run, request)  # repo_path
+    def _execute(self, test_file):
+        category, path = test_file
+        problem = Path(path).stem
 
-        # Update duration in result
-        result.duration = duration
+        request = self.request_factory.build(category=category, problem=problem)
+        return self.backend.run(request)
 
-        self._log_result(result)
-
-        return result
-
-    def _log_result(self, result: TestResult):
-        self.logger.log(
-            {
-                "type": "test_run",
-                "name": result.name,
-                "success": result.success,
-                "duration": result.duration,
-            }
-        )
