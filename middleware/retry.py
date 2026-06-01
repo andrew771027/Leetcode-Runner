@@ -1,6 +1,6 @@
-from runner.interfaces import BaseBackend, BaseMiddleware
 from middleware.registry import MiddlewareRegistry
 from models.test_result import TestResult
+from runner.interfaces import BaseBackend, BaseMiddleware
 from runner.request_factory import ExecutionRequest
 
 

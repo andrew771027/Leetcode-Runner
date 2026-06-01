@@ -1,9 +1,9 @@
 import subprocess
 from pathlib import Path
 
-from runner.interfaces import BaseBackend
 from backends.registry import BackendRegistry
 from models.test_result import TestResult
+from runner.interfaces import BaseBackend
 from runner.request_factory import ExecutionRequest
 
 

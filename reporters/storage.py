@@ -1,8 +1,8 @@
 from typing import List
 
 from models.test_result import TestResult
-from runner.interfaces import BaseReporter
 from reporters.registry import ReporterRegistry
+from runner.interfaces import BaseReporter
 
 
 @ReporterRegistry.register("storage")

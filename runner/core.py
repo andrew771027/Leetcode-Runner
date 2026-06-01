@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import List
 
-from runner.interfaces import BaseBackend
 from models.test_result import TestResult
 from runner.config import RunnerConfig
+from runner.interfaces import BaseBackend
 from runner.request_factory import RequestFactory
 
 
