@@ -2,49 +2,44 @@ import os
 
 import typer
 
-from analytics.output.storage import Storage
-from backends.docker import DockerBackend
-from backends.subprocess import SubprocessBackend
-
+from infra.parallel import ParallelExecutor
+from reporters.registry import ReporterRegistry
+from runner.builder import RunnerBuilder
 from runner.config import RunnerConfig
 from runner.core import Runner
-from infra.logger import Logger
-from infra.parallel import ParallelExecutor
-from utils.discovery import Discovery
-from backends.benchmark import BenchmarkBackend
-
-from reporters.composite import CompositeReporter
-from reporters.storage import StorageReporter
-from reporters.json_reporter import JsonReporter
-from reporters.logger import LoggerReporter
-from reporters.console import ConsoleReporter
-
 from runner.request_factory import RequestFactory
+from utils.discovery import Discovery
 
 DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 
 app = typer.Typer()
+
+
+def build_runner(config: RunnerConfig) -> Runner:
+    backend = (
+        RunnerBuilder().with_backend(config.backend).with_middleware("benchmark").build_backend()
+    )
+
+    return Runner(
+        config=config,
+        backend=backend,
+        discovery=Discovery(config.base_path),
+        executor=ParallelExecutor(),
+        request_factory=RequestFactory(config.base_path),
+    )
+
 
 @app.command()
 def test(
     category: str = typer.Option(..., "--category", help="Category name"),
     problem: str = typer.Option(..., "--problem", help="Problem name"),
     base_path: str = typer.Option(DEFAULT_BASE_PATH, "--base-path", help="Base path for tests"),
+    backend: str = typer.Option("subprocess", "--backend", help="User specific backend"),
 ):
     "Run tests for a single problem."
-    config = RunnerConfig(base_path=base_path, 
-                          backend="subprocess",
-                          docker=False)
-    
-    backend = BenchmarkBackend(SubprocessBackend())
+    config = RunnerConfig(base_path=base_path, backend=backend, docker=False, workers=1)
 
-    runner = Runner(
-        config=config,
-        backend=backend,
-        discovery=None,
-        executor=ParallelExecutor(),
-        request_factory=RequestFactory(config.base_path)
-    )
+    runner = build_runner(config)
 
     result = runner.run_test(category, problem)
 
@@ -54,37 +49,22 @@ def test(
 @app.command()
 def test_all(
     base_path: str = typer.Option(DEFAULT_BASE_PATH, "--base-path", help="Base path for tests"),
-    docker: bool = typer.Option(False, "--docker/--no-docker", help="Use Docker backend"),
+    backend: str = typer.Option("subprocess", "--backend", help="Use specific backend"),
+    workers: int = typer.Option(4, "--worker", help="User specific number of worker"),
+    reporter: str = typer.Option("console", "--reporter", help="Use specific reporter"),
 ):
     "Run all problems"
 
-    config = RunnerConfig(base_path=base_path, 
-                          backend="docker", 
-                          docker=docker, 
-                          workers=4)
+    config = RunnerConfig(base_path=base_path, backend=backend, workers=workers)
 
-    
-    backend = BenchmarkBackend(DockerBackend() if config.docker else SubprocessBackend())
+    runner = build_runner(config)
 
-    reporter = CompositeReporter([
-        ConsoleReporter(),
-        JsonReporter(),
-        StorageReporter(Storage()),
-        LoggerReporter(Logger())
-    ])
-
-
-    runner = Runner(
-        config=config,
-        backend=backend,
-        discovery=Discovery(config.base_path),
-        executor=ParallelExecutor(),
-        request_factory=RequestFactory(config.base_path)
-    )
+    reporters = ReporterRegistry.create_many(reporter.split(","))
 
     results = runner.run_all_tests()
 
-    reporter.report(results)
+    for r in reporters:
+        r.report(results)
 
 
 if __name__ == "__main__":
