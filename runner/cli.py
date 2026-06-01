@@ -2,6 +2,7 @@ import os
 
 import typer
 
+from backends.registry import BackendRegistry
 from infra.parallel import ParallelExecutor
 from reporters.registry import ReporterRegistry
 from runner.builder import RunnerBuilder
@@ -65,6 +66,16 @@ def test_all(
 
     for r in reporters:
         r.report(results)
+
+
+@app.command()
+def list_backends():
+    print(BackendRegistry.available())
+
+
+@app.command()
+def list_reporters():
+    print(ReporterRegistry.available())
 
 
 if __name__ == "__main__":

@@ -1,22 +1,29 @@
-from typing import List
+from runner.interfaces import BaseBackend, BaseMiddleware
+from middleware.registry import MiddlewareRegistry
+from models.test_result import TestResult
+from runner.request_factory import ExecutionRequest
 
-from middleware.base import ExecutionMiddleware
-from models.execution_request import ExecutionRequest
 
+@MiddlewareRegistry.register("retry")
+class RetryMiddleware(BaseMiddleware):
 
-class RetryMiddleware(ExecutionMiddleware):
-
-    def __init__(self, wrapper, retries=2):
-        self.wrapper = wrapper
+    def __init__(self, retries=2):
+        self.wrapper = None
         self.retries = retries
 
-    def run(self, requests: List[ExecutionRequest]):
-        last_error = None
+    def wrap(self, backend: BaseBackend):
+        self.backend = backend
+        return self
+
+    def execute(self, request: ExecutionRequest) -> TestResult:
+        if not hasattr(self, "backend"):
+            raise RuntimeError("Middleware not wrapped with backend")
 
         for _ in range(self.retries):
             try:
-                self.wrapper.run(requests)
+                return self.backend.execute(request)
             except Exception as e:
                 last_error = e
+                print(f"Retry failed: {e}")
 
         raise last_error

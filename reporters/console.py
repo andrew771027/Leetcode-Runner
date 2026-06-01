@@ -1,8 +1,12 @@
 from typing import List
-from reporters.base import Reporter
-from models.test_result import TestResult
 
-class ConsoleReporter(Reporter):
+from models.test_result import TestResult
+from runner.interfaces import BaseReporter
+from reporters.registry import ReporterRegistry
+
+
+@ReporterRegistry.register("console")
+class ConsoleReporter(BaseReporter):
 
     def report(self, results: List[TestResult]):
         for r in results:

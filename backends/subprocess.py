@@ -1,32 +1,28 @@
 import subprocess
-import time
 from pathlib import Path
 
-from backends.base import ExecutionBackend
-from models.execution_request import ExecutionRequest
+from runner.interfaces import BaseBackend
+from backends.registry import BackendRegistry
 from models.test_result import TestResult
+from runner.request_factory import ExecutionRequest
 
 
-class SubprocessBackend(ExecutionBackend):
-    def run(self, request: ExecutionRequest) -> TestResult:
+@BackendRegistry.register("subprocess")
+class SubprocessBackend(BaseBackend):
+    def execute(self, request: ExecutionRequest) -> TestResult:
 
         repo = Path(request.repo_path).resolve()
 
         cmd = ["poetry", "run", "pytest", request.test_path, "-q"]
 
-        start_time = time.time()
-
         result = subprocess.run(cmd, cwd=str(repo), capture_output=True, text=True)
-
-        duration = time.time() - start_time
 
         return TestResult(
             name=request.name,
             category=request.category,
-            problem=request.name,
+            problem=request.problem,
             success=(result.returncode == 0),
             return_code=result.returncode,
-            duration=duration,
             stdout=result.stdout,
             stderr=result.stderr,
             error=str(result.returncode),

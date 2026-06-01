@@ -1,30 +1,33 @@
 from pathlib import Path
 from typing import List
 
+from runner.interfaces import BaseBackend
 from models.test_result import TestResult
 from runner.config import RunnerConfig
-from backends.base import ExecutionBackend
 from runner.request_factory import RequestFactory
+
 
 class Runner:
 
-    def __init__(self, 
-                 config: RunnerConfig, 
-                 backend: ExecutionBackend, 
-                 discovery,
-                 executor, 
-                 request_factory:RequestFactory):
+    def __init__(
+        self,
+        config: RunnerConfig,
+        backend: BaseBackend,
+        discovery,
+        executor,
+        request_factory: RequestFactory,
+    ):
         self.config = config
         self.backend = backend
         self.discovery = discovery
         self.executor = executor
         self.request_factory = request_factory
-    
+
     def run_test(self, category: str, problem: str) -> TestResult:
 
-        request = self.request_factory.build(category=category, problem=problem)
+        request = self.request_factory.create(category=category, problem=problem)
 
-        return self.backend.run(request)
+        return self.backend.execute(request)
 
     def run_all_tests(self) -> List[TestResult]:
         files = self.discovery.find_all()
@@ -39,6 +42,5 @@ class Runner:
         category, path = test_file
         problem = Path(path).stem
 
-        request = self.request_factory.build(category=category, problem=problem)
-        return self.backend.run(request)
-
+        request = self.request_factory.create(category=category, problem=problem)
+        return self.backend.execute(request)

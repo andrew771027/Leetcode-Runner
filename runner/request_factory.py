@@ -1,13 +1,26 @@
-from models.execution_request import ExecutionRequest 
+from dataclasses import dataclass
+
+
+@dataclass
+class ExecutionRequest:
+    category: str
+    problem: str
+    test_path: str
+    repo_path: str
+
+    @property
+    def name(self):
+        return self.problem
+
 
 class RequestFactory:
-    def __init__(self, base_path:str):
+    def __init__(self, base_path: str):
         self.base_path = base_path
-    
-    def build(self, category: str, problem:str) -> ExecutionRequest:
+
+    def create(self, category: str, problem: str) -> ExecutionRequest:
         return ExecutionRequest(
-            name = problem,
-            category= category,
+            category=category,
+            problem=problem,
+            test_path=f"{self.base_path}/tests/{category}/{problem}.py",
             repo_path=self.base_path,
-            test_path=f"tests/{category}/{problem}.py"
         )

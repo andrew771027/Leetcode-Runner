@@ -1,19 +1,22 @@
 import time
 
-from middleware.base import ExecutionMiddleware
-from models.execution_request import ExecutionRequest
+from runner.interfaces import BaseBackend, BaseMiddleware
+from middleware.registry import MiddlewareRegistry
 from models.test_result import TestResult
+from runner.request_factory import ExecutionRequest
 
 
-class BenchmarkMiddleware(ExecutionMiddleware):
+@MiddlewareRegistry.register("benchmark")
+class BenchmarkMiddleware(BaseMiddleware):
 
-    def __init__(self, wrapper):
-        self.wrapper = wrapper
+    def wrap(self, backend: BaseBackend):
+        self.backend = backend
+        return self
 
-    def run(self, request: ExecutionRequest) -> TestResult:
+    def execute(self, request: ExecutionRequest) -> TestResult:
         start = time.perf_counter()
 
-        result = self.wrapper.run(request)
+        result = self.backend.execute(request)
 
         result.duration = time.perf_counter() - start
 

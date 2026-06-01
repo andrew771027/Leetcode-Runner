@@ -1,16 +1,23 @@
 import signal
 
-from middleware.base import ExecutionMiddleware
-from models.execution_request import ExecutionRequest
+from runner.interfaces import BaseBackend, BaseMiddleware
+from middleware.registry import MiddlewareRegistry
+from models.test_result import TestResult
+from runner.request_factory import ExecutionRequest
 
 
-class TimeoutMiddleware(ExecutionMiddleware):
+@MiddlewareRegistry.register("timeout")
+class TimeoutMiddleware(BaseMiddleware):
 
-    def __init__(self, wrapped, seconds: int = 10):
-        self.wrapped = wrapped
+    def __init__(self, seconds: int = 10):
+        self.wrapped = None
         self.seconds = seconds
 
-    def run(self, request: ExecutionRequest):
+    def wrap(self, backend: BaseBackend):
+        self.backend = backend
+        return self
+
+    def execute(self, request: ExecutionRequest) -> TestResult:
         def handler(signum, frame):
             raise TimeoutError()
 
@@ -18,6 +25,6 @@ class TimeoutMiddleware(ExecutionMiddleware):
         signal.alarm(self.seconds)
 
         try:
-            self.wrapped.run(request)
+            return self.wrapped.execute(request)
         finally:
             signal.alarm(0)

@@ -2,10 +2,12 @@ import json
 from typing import List
 
 from models.test_result import TestResult
-from reporters.base import Reporter
+from runner.interfaces import BaseReporter
+from reporters.registry import ReporterRegistry
 
 
-class JsonReporter(Reporter):
+@ReporterRegistry.register("json")
+class JsonReporter(BaseReporter):
     def report(self, results: List[TestResult]):
         payload = [
             {

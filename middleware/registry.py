@@ -1,19 +1,19 @@
-class BackendRegistry:
+class MiddlewareRegistry:
 
     _registry = {}
 
     @classmethod
     def register(cls, name):
-        def decorator(backend_cls):
-            cls._registry[name] = backend_cls
-            return backend_cls
+        def decorator(middleware_cls):
+            cls._registry[name] = middleware_cls
+            return middleware_cls
 
         return decorator
 
     @classmethod
     def create(cls, name: str):
         if name not in cls._registry:
-            raise ValueError(f"Unknown backend: {name}")
+            raise ValueError(f"Unknown middleware: {name}")
         return cls._registry[name]()
 
     @classmethod
