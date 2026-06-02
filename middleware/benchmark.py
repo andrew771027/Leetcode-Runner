@@ -1,6 +1,5 @@
 import time
 
-from contracts.backend import ExecutionBackend
 from contracts.middleware import ExecutionMiddleware, NextHandler
 from middleware.registry import MiddlewareRegistry
 from models.execution_request import ExecutionRequest
