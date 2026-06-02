@@ -2,14 +2,18 @@ import os
 
 import typer
 
+from analytics.metrics import Metrics
 from backends.registry import BackendRegistry
 from factories.builder import RunnerBuilder
 from factories.request_factory import RequestFactory
+from infra.event_logger import EventLogger
 from infra.parallel import ParallelExecutor
 from reporters.registry import ReporterRegistry
 from runner.config import RunnerConfig
 from runner.engine import Runner
+from services.artifact_store import ArtifactStore
 from services.discovery import Discovery
+from services.history_store import HistoryStore
 
 DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 
@@ -32,6 +36,10 @@ def build_runner(config: RunnerConfig) -> Runner:
         discovery=Discovery(config.base_path),
         executor=ParallelExecutor(),
         request_factory=RequestFactory(config.base_path),
+        artifact_store=ArtifactStore(output_dir="output"),
+        history_store=HistoryStore(output_dir="output"),
+        metrics=Metrics(),
+        event_logger=EventLogger(output_dir="output"),
     )
 
 
