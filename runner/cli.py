@@ -18,8 +18,14 @@ app = typer.Typer()
 
 def build_runner(config: RunnerConfig) -> Runner:
     backend = (
-        RunnerBuilder().with_backend(config.backend).with_middleware("benchmark").build_backend()
+        RunnerBuilder()
+        .with_backend(config.backend)
+        .with_middleware("retry")
+        # .with_middleware("timeout")  # 暫時保留，但先不要啟用
+        .with_middleware("benchmark")
+        .build_backend()
     )
+
 
     return Runner(
         config=config,

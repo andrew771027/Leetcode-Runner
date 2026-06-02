@@ -1,7 +1,12 @@
+# NOTE:
+# This signal-based timeout only works in the main thread.
+# It is not compatible with ThreadPoolExecutor-based parallel execution.
+# Keep this middleware for future refactor.
+
 import signal
 
 from contracts.backend import ExecutionBackend
-from contracts.middleware import ExecutionMiddleware
+from contracts.middleware import ExecutionMiddleware, NextHandler
 from middleware.registry import MiddlewareRegistry
 from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
@@ -11,14 +16,13 @@ from models.test_result import TestResult
 class TimeoutMiddleware(ExecutionMiddleware):
 
     def __init__(self, seconds: int = 10):
-        self.wrapped = None
         self.seconds = seconds
 
-    def wrap(self, backend: ExecutionBackend):
-        self.backend = backend
-        return self
-
-    def execute(self, request: ExecutionRequest) -> TestResult:
+    def execute(self, 
+                request: ExecutionRequest, 
+                next_handler: NextHandler
+        ) -> TestResult:
+        
         def handler(signum, frame):
             raise TimeoutError()
 
@@ -26,6 +30,6 @@ class TimeoutMiddleware(ExecutionMiddleware):
         signal.alarm(self.seconds)
 
         try:
-            return self.wrapped.execute(request)
+            return next_handler(request)
         finally:
             signal.alarm(0)

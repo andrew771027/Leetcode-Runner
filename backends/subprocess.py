@@ -15,15 +15,33 @@ class SubprocessBackend(ExecutionBackend):
 
         cmd = ["poetry", "run", "pytest", request.test_path, "-q"]
 
-        result = subprocess.run(cmd, cwd=str(repo), capture_output=True, text=True)
+        try:
+            result = subprocess.run(
+                cmd, 
+                cwd=str(repo), 
+                capture_output=True, 
+                text=True,
+                timeout=request.timeout)
 
-        return TestResult(
-            name=request.name,
-            category=request.category,
-            problem=request.problem,
-            success=(result.returncode == 0),
-            return_code=result.returncode,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            error=str(result.returncode),
-        )
+            return TestResult(
+                name=request.name,
+                category=request.category,
+                problem=request.problem,
+                success=(result.returncode == 0),
+                return_code=result.returncode,
+                stdout=result.stdout,
+                stderr=result.stderr,
+                error=str(result.returncode),
+            )
+        
+        except subprocess.TimeoutExpired as e:
+            return TestResult(
+                name=request.name,
+                category=request.category,
+                problem=request.problem,
+                success=False,
+                return_code=-1,
+                stdout=e.stdout or "",
+                stderr=e.stderr or "",
+                error=f"Timeout after {request.timeout}s",
+            )

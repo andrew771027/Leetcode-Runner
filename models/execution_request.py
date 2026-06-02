@@ -7,6 +7,7 @@ class ExecutionRequest:
     problem: str
     test_path: str
     repo_path: str
+    timeout: int | None = None
 
     @property
     def name(self):
