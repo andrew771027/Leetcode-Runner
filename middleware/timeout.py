@@ -1,7 +1,7 @@
 # NOTE:
 # This signal-based timeout only works in the main thread.
 # It is not compatible with ThreadPoolExecutor-based parallel execution.
-# Keep this middleware for future refactor.
+# Keep this middleware for future refactor.x
 
 import signal
 
@@ -18,11 +18,8 @@ class TimeoutMiddleware(ExecutionMiddleware):
     def __init__(self, seconds: int = 10):
         self.seconds = seconds
 
-    def execute(self, 
-                request: ExecutionRequest, 
-                next_handler: NextHandler
-        ) -> TestResult:
-        
+    def execute(self, request: ExecutionRequest, next_handler: NextHandler) -> TestResult:
+
         def handler(signum, frame):
             raise TimeoutError()
 

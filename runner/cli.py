@@ -26,7 +26,6 @@ def build_runner(config: RunnerConfig) -> Runner:
         .build_backend()
     )
 
-
     return Runner(
         config=config,
         backend=backend,

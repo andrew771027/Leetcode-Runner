@@ -1,6 +1,7 @@
 from backends.registry import BackendRegistry
-from middleware.registry import MiddlewareRegistry
 from middleware.pipeline import MiddlewarePipeline
+from middleware.registry import MiddlewareRegistry
+
 
 class RunnerBuilder:
     def __init__(self):
@@ -26,5 +27,5 @@ class RunnerBuilder:
 
         if not middlewares:
             return backend
-        
+
         return MiddlewarePipeline(backend=backend, middlewares=middlewares)

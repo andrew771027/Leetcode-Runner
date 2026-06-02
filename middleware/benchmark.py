@@ -10,10 +10,7 @@ from models.test_result import TestResult
 @MiddlewareRegistry.register("benchmark")
 class BenchmarkMiddleware(ExecutionMiddleware):
 
-    def execute(self, 
-                request: ExecutionRequest, 
-                next_handler: NextHandler
-        ) -> TestResult:
+    def execute(self, request: ExecutionRequest, next_handler: NextHandler) -> TestResult:
 
         start = time.perf_counter()
 

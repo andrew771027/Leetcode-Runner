@@ -17,11 +17,8 @@ class SubprocessBackend(ExecutionBackend):
 
         try:
             result = subprocess.run(
-                cmd, 
-                cwd=str(repo), 
-                capture_output=True, 
-                text=True,
-                timeout=request.timeout)
+                cmd, cwd=str(repo), capture_output=True, text=True, timeout=request.timeout
+            )
 
             return TestResult(
                 name=request.name,
@@ -33,7 +30,7 @@ class SubprocessBackend(ExecutionBackend):
                 stderr=result.stderr,
                 error=str(result.returncode),
             )
-        
+
         except subprocess.TimeoutExpired as e:
             return TestResult(
                 name=request.name,

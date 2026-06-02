@@ -13,9 +13,7 @@ class MiddlewareRegistry:
     @classmethod
     def create(cls, name: str):
         if name not in cls._registry:
-            raise ValueError(f"Unknown middleware: {name}."
-                             f"Available: {cls.available()}"
-                             )
+            raise ValueError(f"Unknown middleware: {name}." f"Available: {cls.available()}")
         return cls._registry[name]()
 
     @classmethod
