@@ -1,12 +1,12 @@
 from typing import List
 
+from contracts.reporter import ExecutionReporter
 from models.test_result import TestResult
 from reporters.registry import ReporterRegistry
-from runner.interfaces import BaseReporter
 
 
-@ReporterRegistry.register("storage")
-class StorageReporter(BaseReporter):
+@ReporterRegistry.register("file")
+class FileReporter(ExecutionReporter):
 
     def __init__(self, storage):
         self.storage = storage

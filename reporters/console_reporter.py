@@ -6,12 +6,8 @@ from reporters.formatter import ResultFormatter
 from reporters.registry import ReporterRegistry
 
 
-@ReporterRegistry.register("json")
-class JsonReporter(ExecutionReporter):
-
-    def __init__(self, path="./output/report.json"):
-        self.path = path
+@ReporterRegistry.register("console")
+class ConsoleReporter(ExecutionReporter):
 
     def report(self, results: List[TestResult]):
-        with open(self.path, "w") as f:
-            f.write(ResultFormatter.json(results))
+        print(ResultFormatter.console(results))

@@ -12,6 +12,8 @@ env/
 
 *.pyc
 
+output/
+
 report.json
 history.jsonl
 event.jsonl

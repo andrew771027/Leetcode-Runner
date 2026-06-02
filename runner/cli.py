@@ -3,13 +3,13 @@ import os
 import typer
 
 from backends.registry import BackendRegistry
+from factories.builder import RunnerBuilder
+from factories.request_factory import RequestFactory
 from infra.parallel import ParallelExecutor
 from reporters.registry import ReporterRegistry
-from runner.builder import RunnerBuilder
 from runner.config import RunnerConfig
-from runner.core import Runner
-from runner.request_factory import RequestFactory
-from utils.discovery import Discovery
+from runner.engine import Runner
+from services.discovery import Discovery
 
 DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 

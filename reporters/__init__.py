@@ -1,4 +1,4 @@
-from reporters.console import ConsoleReporter
+from reporters.console_reporter import ConsoleReporter
+from reporters.file_reporter import FileReporter
 from reporters.json_reporter import JsonReporter
-from reporters.logger import LoggerReporter
-from reporters.storage import StorageReporter
+from reporters.logger_reporter import LoggerReporter

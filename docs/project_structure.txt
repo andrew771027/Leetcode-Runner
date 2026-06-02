@@ -1,0 +1,66 @@
+.
+├── analytics
+│   ├── __init__.py
+│   └── metrics.py
+├── backends
+│   ├── __init__.py
+│   ├── docker.py
+│   ├── registry.py
+│   └── subprocess.py
+├── contracts
+│   ├── __init__.py
+│   ├── backend.py
+│   ├── middleware.py
+│   └── reporter.py
+├── Dockerfile
+├── docs
+│   ├── design.png
+│   ├── note.html
+│   ├── note.md
+│   └── project_structure.txt
+├── factories
+│   ├── __init__.py
+│   ├── builder.py
+│   └── request_factory.py
+├── infra
+│   ├── __init__.py
+│   ├── logger.py
+│   └── parallel.py
+├── Makefile
+├── middleware
+│   ├── __init__.py
+│   ├── benchmark.py
+│   ├── registry.py
+│   ├── retry.py
+│   └── timeout.py
+├── models
+│   ├── __init__.py
+│   ├── execution_request.py
+│   └── test_result.py
+├── output
+│   ├── event.jsonl
+│   ├── history.jsonl
+│   └── report.json
+├── poetry.lock
+├── pyproject.toml
+├── README.md
+├── reporters
+│   ├── __init__.py
+│   ├── console_reporter.py
+│   ├── file_reporter.py
+│   ├── formatter.py
+│   ├── json_reporter.py
+│   ├── logger_reporter.py
+│   └── registry.py
+├── runner
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── config.py
+│   └── engine.py
+├── scripts
+│   └── run_local.sh
+└── services
+    ├── __init__.py
+    └── discovery.py
+
+14 directories, 50 files

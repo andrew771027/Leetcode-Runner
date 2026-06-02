@@ -2,13 +2,13 @@ import subprocess
 from pathlib import Path
 
 from backends.registry import BackendRegistry
+from contracts.backend import ExecutionBackend
+from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
-from runner.interfaces import BaseBackend
-from runner.request_factory import ExecutionRequest
 
 
 @BackendRegistry.register("subprocess")
-class SubprocessBackend(BaseBackend):
+class SubprocessBackend(ExecutionBackend):
     def execute(self, request: ExecutionRequest) -> TestResult:
 
         repo = Path(request.repo_path).resolve()

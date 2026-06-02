@@ -5,7 +5,7 @@ from models.test_result import TestResult
 
 
 class Logger:
-    def log_result(self, result: TestResult, file="event.jsonl") -> None:
+    def log_result(self, result: TestResult, file="./output/event.jsonl") -> None:
 
         event: dict = {
             "type": "test_run",

@@ -1,16 +1,4 @@
-from dataclasses import dataclass
-
-
-@dataclass
-class ExecutionRequest:
-    category: str
-    problem: str
-    test_path: str
-    repo_path: str
-
-    @property
-    def name(self):
-        return self.problem
+from models.execution_request import ExecutionRequest
 
 
 class RequestFactory:

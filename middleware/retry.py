@@ -1,17 +1,18 @@
+from contracts.backend import ExecutionBackend
+from contracts.middleware import ExecutionMiddleware
 from middleware.registry import MiddlewareRegistry
+from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
-from runner.interfaces import BaseBackend, BaseMiddleware
-from runner.request_factory import ExecutionRequest
 
 
 @MiddlewareRegistry.register("retry")
-class RetryMiddleware(BaseMiddleware):
+class RetryMiddleware(ExecutionMiddleware):
 
     def __init__(self, retries=2):
         self.wrapper = None
         self.retries = retries
 
-    def wrap(self, backend: BaseBackend):
+    def wrap(self, backend: ExecutionBackend):
         self.backend = backend
         return self
 

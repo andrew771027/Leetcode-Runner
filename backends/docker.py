@@ -2,13 +2,13 @@ import subprocess
 from pathlib import Path
 
 from backends.registry import BackendRegistry
+from contracts.backend import ExecutionBackend
+from models.execution_request import ExecutionRequest
 from models.test_result import TestResult
-from runner.interfaces import BaseBackend
-from runner.request_factory import ExecutionRequest
 
 
 @BackendRegistry.register("docker")
-class DockerBackend(BaseBackend):
+class DockerBackend(ExecutionBackend):
 
     def __init__(self, image: str = "leetcode-runner-base"):
         self.image = image

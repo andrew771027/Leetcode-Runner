@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import List
 
+from contracts.backend import ExecutionBackend
+from factories.request_factory import RequestFactory
 from models.test_result import TestResult
 from runner.config import RunnerConfig
-from runner.interfaces import BaseBackend
-from runner.request_factory import RequestFactory
 
 
 class Runner:
@@ -12,7 +12,7 @@ class Runner:
     def __init__(
         self,
         config: RunnerConfig,
-        backend: BaseBackend,
+        backend: ExecutionBackend,
         discovery,
         executor,
         request_factory: RequestFactory,
