@@ -14,13 +14,24 @@ from runner.engine import Runner
 from services.artifact_store import ArtifactStore
 from services.discovery import Discovery
 from services.history_store import HistoryStore
+from workflow.pipeline import WorkflowPipeline
+from workflow.stages.artifact import ArtifactStage
+from workflow.stages.discover import DiscoverStage
+from workflow.stages.execute import ExecuteStage
+from workflow.stages.history import HistoryStage
+from workflow.stages.metrics import MetricsStage
+from workflow.stages.report import ReportStage
+from workflow.stages.single_test import SingleTestStage
 
 DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 
 app = typer.Typer()
 
+event_logger = EventLogger("output")
 
-def build_runner(config: RunnerConfig) -> Runner:
+
+def build_backend(config: RunnerBuilder):
+
     backend = (
         RunnerBuilder()
         .with_backend(config.backend)
@@ -30,17 +41,55 @@ def build_runner(config: RunnerConfig) -> Runner:
         .build_backend()
     )
 
-    return Runner(
-        config=config,
-        backend=backend,
-        discovery=Discovery(config.base_path),
-        executor=ParallelExecutor(),
-        request_factory=RequestFactory(config.base_path),
-        artifact_store=ArtifactStore(output_dir="output"),
-        history_store=HistoryStore(output_dir="output"),
-        metrics=Metrics(),
-        event_logger=EventLogger(output_dir="output"),
+    return backend
+
+
+def build_test_runner(config: RunnerConfig, category: str, problem: str, reporters):
+    backend = build_backend(config)
+
+    request_factory = RequestFactory(config.base_path)
+
+    pipeline = WorkflowPipeline()
+
+    pipeline.add_stage(SingleTestStage(category, problem))
+    pipeline.add_stage(
+        ExecuteStage(
+            executor=ParallelExecutor(),
+            request_factory=request_factory,
+            backend=backend,
+            workers=1,
+            event_logger=event_logger,
+        )
     )
+    pipeline.add_stage(ArtifactStage(ArtifactStore(config.output_dir)))
+    pipeline.add_stage(ReportStage(reporters))
+
+    return Runner(pipeline)
+
+
+def build_test_all_runner(config: RunnerConfig, reporters):
+    backend = build_backend(config)
+
+    request_factory = RequestFactory(config.base_path)
+
+    pipeline = WorkflowPipeline()
+
+    pipeline.add_stage(DiscoverStage(Discovery(config.base_path)))
+    pipeline.add_stage(
+        ExecuteStage(
+            executor=ParallelExecutor(),
+            request_factory=request_factory,
+            backend=backend,
+            workers=config.workers,
+            event_logger=event_logger,
+        )
+    )
+    pipeline.add_stage(ArtifactStage(ArtifactStore(config.output_dir)))
+    pipeline.add_stage(HistoryStage(HistoryStore(config.output_dir)))
+    pipeline.add_stage(MetricsStage(Metrics()))
+    pipeline.add_stage(ReportStage(reporters))
+
+    return Runner(pipeline)
 
 
 @app.command()
@@ -49,15 +98,20 @@ def test(
     problem: str = typer.Option(..., "--problem", help="Problem name"),
     base_path: str = typer.Option(DEFAULT_BASE_PATH, "--base-path", help="Base path for tests"),
     backend: str = typer.Option("subprocess", "--backend", help="User specific backend"),
+    reporter: str = typer.Option("console", "--reporter", help="Use specific reporter"),
 ):
-    "Run tests for a single problem."
+
     config = RunnerConfig(base_path=base_path, backend=backend, docker=False, workers=1)
 
-    runner = build_runner(config)
+    reporters = ReporterRegistry.create_many(reporter.split(","))
 
-    result = runner.run_test(category, problem)
+    runner = build_test_runner(config, category, problem, reporters)
 
-    print(f"{result.name} -> {'PASS' if result.success else 'FAIL'}")
+    context = runner.run()
+
+    if context.results:
+        result = context.results[0]
+        print(f"{result.name} -> {'PASS' if result.success else 'FAIL'}")
 
 
 @app.command()
@@ -67,18 +121,16 @@ def test_all(
     workers: int = typer.Option(4, "--worker", help="User specific number of worker"),
     reporter: str = typer.Option("console", "--reporter", help="Use specific reporter"),
 ):
-    "Run all problems"
-
     config = RunnerConfig(base_path=base_path, backend=backend, workers=workers)
-
-    runner = build_runner(config)
 
     reporters = ReporterRegistry.create_many(reporter.split(","))
 
-    results = runner.run_all_tests()
+    runner = build_test_all_runner(config, reporters)
+
+    context = runner.run()
 
     for r in reporters:
-        r.report(results)
+        r.report(context.results)
 
 
 @app.command()

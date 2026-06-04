@@ -6,7 +6,7 @@ VENV := $(shell $(POETRY) env info -p)
 
 test:
 	@. "$(VENV)/bin/activate" && \
-	python -m runner.cli test --base-path "/Users/poyuan/Desktop/andrew771027/LeetCode" --category array --problem test_lc_001_two_sum --backend subprocess
+	python -m runner.cli test --base-path "/Users/poyuan/Desktop/andrew771027/LeetCode" --category array --problem test_lc_001_two_sum --backend subprocess --reporter console
 
 test_all_local:
 	@. "$(VENV)/bin/activate" && \
