@@ -2,6 +2,8 @@
 
 > From LeetCode Testing Tool to Test Orchestration Platform
 
+![Architecture Diagram](./docs/architecture_diagram.png "Architecture Diagram")
+
 ---
 
 # 🇹🇼 中文版
