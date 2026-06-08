@@ -4,9 +4,11 @@ import typer
 
 from analytics.metrics import Metrics
 from backends.registry import BackendRegistry
+from events.bus import EventBus
+from events.subscribers.file_logger import FileLoggerSubscriber
+from events.subscribers.metrics_collector import MetricsSubscriber
 from factories.builder import RunnerBuilder
 from factories.request_factory import RequestFactory
-from infra.event_logger import EventLogger
 from infra.parallel import ParallelExecutor
 from reporters.registry import ReporterRegistry
 from runner.config import RunnerConfig
@@ -27,7 +29,20 @@ DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andre
 
 app = typer.Typer()
 
-event_logger = EventLogger("output")
+
+def build_event_bus(config: RunnerConfig) -> EventBus:
+
+    event_bus = EventBus()
+
+    file_logger = FileLoggerSubscriber(path=f"{config.output_dir}/event.jsonl")
+
+    event_bus.subscribe("test_started", file_logger)
+    event_bus.subscribe("test_finished", file_logger)
+    event_bus.subscribe("test_failed", file_logger)
+
+    event_bus.subscribe("test_finished", MetricsSubscriber())
+
+    return event_bus
 
 
 def build_backend(config: RunnerBuilder):
@@ -47,6 +62,8 @@ def build_backend(config: RunnerBuilder):
 def build_test_runner(config: RunnerConfig, category: str, problem: str, reporters):
     backend = build_backend(config)
 
+    event_bus = build_event_bus(config)
+
     request_factory = RequestFactory(config.base_path)
 
     pipeline = WorkflowPipeline()
@@ -58,7 +75,7 @@ def build_test_runner(config: RunnerConfig, category: str, problem: str, reporte
             request_factory=request_factory,
             backend=backend,
             workers=1,
-            event_logger=event_logger,
+            event_bus=event_bus,
         )
     )
     pipeline.add_stage(ArtifactStage(ArtifactStore(config.output_dir)))
@@ -69,6 +86,8 @@ def build_test_runner(config: RunnerConfig, category: str, problem: str, reporte
 
 def build_test_all_runner(config: RunnerConfig, reporters):
     backend = build_backend(config)
+
+    event_bus = build_event_bus(config)
 
     request_factory = RequestFactory(config.base_path)
 
@@ -81,7 +100,7 @@ def build_test_all_runner(config: RunnerConfig, reporters):
             request_factory=request_factory,
             backend=backend,
             workers=config.workers,
-            event_logger=event_logger,
+            event_bus=event_bus,
         )
     )
     pipeline.add_stage(ArtifactStage(ArtifactStore(config.output_dir)))

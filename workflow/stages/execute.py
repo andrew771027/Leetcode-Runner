@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from infra.event_logger import EventLogger
+from events.bus import EventBus
+from events.event import Event
 from workflow.context import ExecutionContext
 from workflow.stage import Stage
 
@@ -8,13 +9,13 @@ from workflow.stage import Stage
 class ExecuteStage(Stage):
 
     def __init__(
-        self, executor, request_factory, backend, workers: int = 1, event_logger: EventLogger = None
+        self, executor, request_factory, backend, workers: int = 1, event_bus: EventBus = None
     ):
         self.executor = executor
         self.request_factory = request_factory
         self.backend = backend
         self.workers = workers
-        self.event_logger = event_logger
+        self.event_bus = event_bus
 
     def execute(self, context: ExecutionContext):
         context.results = self.executor.run(
@@ -32,35 +33,42 @@ class ExecuteStage(Stage):
             problem=problem,
         )
 
-        if self.event_logger:
-            self.event_logger.emit(
-                "test_start",
-                {"name": request.name, "category": request.category},
+        if self.event_bus:
+            self.event_bus.publish(
+                Event(
+                    type="test_started",
+                    payload={"name": request.name, "category": request.category},
+                )
             )
 
         try:
             result = self.backend.execute(request)
 
-            if self.event_logger:
-                self.event_logger.emit(
-                    "test_finished",
-                    {
-                        "name": result.name,
-                        "category": result.category,
-                        "success": result.success,
-                        "duration": result.duration,
-                    },
+            if self.event_bus:
+                self.event_bus.publish(
+                    Event(
+                        type="test_finished",
+                        payload={
+                            "name": result.name,
+                            "category": result.category,
+                            "success": result.success,
+                            "duration": result.duration,
+                        },
+                    )
                 )
 
             return result
         except Exception as e:
-            if self.event_logger:
-                self.event_logger.emit(
-                    "test_failed",
-                    {
-                        "name": request.name,
-                        "category": request.category,
-                        "error": str(e),
-                    },
+            if self.event_bus:
+                self.event_bus.publish(
+                    Event(
+                        type="test_failed",
+                        payload={
+                            "name": request.name,
+                            "category": request.category,
+                            "error": str(e),
+                        },
+                    )
                 )
+
             raise
