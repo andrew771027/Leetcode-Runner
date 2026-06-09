@@ -1,0 +1,50 @@
+sequenceDiagram
+    participant User
+    participant CLI
+    participant Config as RunnerConfig
+    participant WB as WorkflowBuilder
+    participant EB as EventBusBuilder
+    participant RB as RunnerBuilder
+    participant Runner
+    participant Pipeline as WorkflowPipeline
+    participant Discover as DiscoverStage
+    participant Execute as ExecuteStage
+    participant MW as MiddlewarePipeline
+    participant Backend
+    participant Bus as EventBus
+    participant Store as Artifact/History Store
+    participant Reporter
+
+    User->>CLI: make test_all_local
+    CLI->>Config: create config
+    CLI->>RB: build backend + middleware
+    RB-->>CLI: backend pipeline
+    CLI->>EB: build event bus
+    EB-->>CLI: event bus
+    CLI->>WB: build workflow pipeline
+    WB-->>CLI: workflow pipeline
+    CLI->>Runner: Runner(pipeline)
+
+    CLI->>Runner: run()
+    Runner->>Pipeline: run(context)
+
+    Pipeline->>Discover: execute(context)
+    Discover-->>Pipeline: context.files
+
+    Pipeline->>Execute: execute(context)
+
+    loop each test file
+        Execute->>Bus: publish test_started
+        Execute->>MW: execute(request)
+        MW->>Backend: execute(request)
+        Backend-->>MW: TestResult
+        MW-->>Execute: TestResult
+        Execute->>Bus: publish test_finished
+    end
+
+    Execute-->>Pipeline: context.results
+
+    Pipeline->>Store: save report / append history
+    Pipeline->>Reporter: report(context.results)
+    Pipeline-->>Runner: context
+    Runner-->>CLI: context

@@ -1,0 +1,82 @@
+classDiagram
+    class Runner {
+        -WorkflowPipeline pipeline
+        +run() ExecutionContext
+    }
+
+    class WorkflowPipeline {
+        -List~Stage~ stages
+        +add_stage(stage)
+        +run(context)
+    }
+
+    class Stage {
+        <<interface>>
+        +execute(context)
+    }
+
+    class DiscoverStage
+    class ExecuteStage
+    class ArtifactStage
+    class HistoryStage
+    class MetricsStage
+    class ReportStage
+
+    Stage <|.. DiscoverStage
+    Stage <|.. ExecuteStage
+    Stage <|.. ArtifactStage
+    Stage <|.. HistoryStage
+    Stage <|.. MetricsStage
+    Stage <|.. ReportStage
+
+    Runner --> WorkflowPipeline
+    WorkflowPipeline --> Stage
+
+    class ExecutionBackend {
+        <<interface>>
+        +execute(request) TestResult
+    }
+
+    class SubprocessBackend
+    class DockerBackend
+    class MiddlewarePipeline
+
+    ExecutionBackend <|.. SubprocessBackend
+    ExecutionBackend <|.. DockerBackend
+    ExecutionBackend <|.. MiddlewarePipeline
+
+    class ExecutionMiddleware {
+        <<interface>>
+        +execute(request, next_handler) TestResult
+    }
+
+    class RetryMiddleware
+    class BenchmarkMiddleware
+    class TimeoutMiddleware
+
+    ExecutionMiddleware <|.. RetryMiddleware
+    ExecutionMiddleware <|.. BenchmarkMiddleware
+    ExecutionMiddleware <|.. TimeoutMiddleware
+
+    MiddlewarePipeline --> ExecutionMiddleware
+    MiddlewarePipeline --> ExecutionBackend
+
+    class EventBus {
+        +subscribe(event_type, subscriber)
+        +publish(event)
+    }
+
+    class EventSubscriber {
+        <<interface>>
+        +handle(event)
+    }
+
+    class FileLoggerSubscriber
+    class MetricsSubscriber
+
+    EventSubscriber <|.. FileLoggerSubscriber
+    EventSubscriber <|.. MetricsSubscriber
+    EventBus --> EventSubscriber
+
+    ExecuteStage --> ExecutionBackend
+    ExecuteStage --> EventBus

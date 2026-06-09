@@ -1,0 +1,44 @@
+flowchart TD
+    CLI[runner.cli<br/>Typer CLI] --> Config[RunnerConfig]
+    CLI --> RunnerFactory[build_runner / builders]
+
+    RunnerFactory --> BackendBuilder[RunnerBuilder]
+    RunnerFactory --> WorkflowBuilder[WorkflowBuilder]
+    RunnerFactory --> EventBusBuilder[EventBusBuilder]
+    RunnerFactory --> ReporterRegistry[ReporterRegistry]
+
+    BackendBuilder --> BackendRegistry[BackendRegistry]
+    BackendBuilder --> MiddlewareRegistry[MiddlewareRegistry]
+    BackendBuilder --> MiddlewarePipeline[MiddlewarePipeline]
+    MiddlewarePipeline --> Backend[ExecutionBackend<br/>Subprocess / Docker]
+
+    EventBusBuilder --> EventBus[EventBus]
+    EventBusBuilder --> SubscriberRegistry[SubscriberRegistry]
+    EventBus --> Subscribers[Subscribers<br/>FileLogger / Metrics]
+
+    WorkflowBuilder --> StageRegistry[StageRegistry]
+    WorkflowBuilder --> WorkflowPipeline[WorkflowPipeline]
+
+    WorkflowPipeline --> DiscoverStage[DiscoverStage]
+    WorkflowPipeline --> ExecuteStage[ExecuteStage]
+    WorkflowPipeline --> ArtifactStage[ArtifactStage]
+    WorkflowPipeline --> HistoryStage[HistoryStage]
+    WorkflowPipeline --> MetricsStage[MetricsStage]
+    WorkflowPipeline --> ReportStage[ReportStage]
+
+    RunnerFactory --> Runner[Runner]
+    Runner --> WorkflowPipeline
+
+    ExecuteStage --> MiddlewarePipeline
+    ExecuteStage --> EventBus
+    ExecuteStage --> RequestFactory[RequestFactory]
+    RequestFactory --> ExecutionRequest[ExecutionRequest]
+
+    Backend --> TestResult[TestResult]
+
+    ArtifactStage --> ArtifactStore[ArtifactStore<br/>report.json]
+    HistoryStage --> HistoryStore[HistoryStore<br/>history.jsonl]
+    MetricsStage --> Metrics[Metrics]
+    ReportStage --> Reporters[Reporters<br/>Console / JSON / File]
+
+    Subscribers --> EventFile[event.jsonl]
