@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from backends.registry import BackendRegistry
 
@@ -10,6 +10,25 @@ class RunnerConfig:
     docker: bool = False
     workers: int = 4
     output_dir: str = "output"
+
+    workflow: list[str] = field(
+        default_factory=lambda: [
+            "discover",
+            "execute",
+            "artifact",
+            "history",
+            "metrics",
+            "report",
+        ]
+    )
+
+    event_subscribers: dict = field(
+        default_factory=lambda: {
+            "test_started": ["file_logger"],
+            "test_finished": ["file_logger", "metrics"],
+            "test_failed": ["file_logger"],
+        }
+    )
 
     def validate(self, backend_registry: BackendRegistry):
         if self.backend not in backend_registry.available():

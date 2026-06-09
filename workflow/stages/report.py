@@ -1,7 +1,9 @@
 from workflow.context import ExecutionContext
+from workflow.registry import StageRegistry
 from workflow.stage import Stage
 
 
+@StageRegistry.register("report")
 class ReportStage(Stage):
 
     def __init__(self, reporters):

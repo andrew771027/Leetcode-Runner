@@ -1,6 +1,8 @@
+from workflow.registry import StageRegistry
 from workflow.stage import Stage
 
 
+@StageRegistry.register("history")
 class HistoryStage(Stage):
 
     def __init__(self, store):

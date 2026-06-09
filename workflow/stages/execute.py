@@ -3,9 +3,11 @@ from pathlib import Path
 from events.bus import EventBus
 from events.event import Event
 from workflow.context import ExecutionContext
+from workflow.registry import StageRegistry
 from workflow.stage import Stage
 
 
+@StageRegistry.register("execute")
 class ExecuteStage(Stage):
 
     def __init__(
@@ -33,42 +35,36 @@ class ExecuteStage(Stage):
             problem=problem,
         )
 
-        if self.event_bus:
-            self.event_bus.publish(
-                Event(
-                    type="test_started",
-                    payload={"name": request.name, "category": request.category},
-                )
-            )
+        self._publish(
+            event_type="test_strted", payload={"name": request.name, "category": request.category}
+        )
 
         try:
             result = self.backend.execute(request)
 
-            if self.event_bus:
-                self.event_bus.publish(
-                    Event(
-                        type="test_finished",
-                        payload={
-                            "name": result.name,
-                            "category": result.category,
-                            "success": result.success,
-                            "duration": result.duration,
-                        },
-                    )
-                )
+            self._publish(
+                event_type="test_finished",
+                payload={
+                    "name": result.name,
+                    "category": result.category,
+                    "success": result.success,
+                    "duration": result.duration,
+                },
+            )
 
             return result
         except Exception as e:
-            if self.event_bus:
-                self.event_bus.publish(
-                    Event(
-                        type="test_failed",
-                        payload={
-                            "name": request.name,
-                            "category": request.category,
-                            "error": str(e),
-                        },
-                    )
-                )
+            self._publish(
+                event_type="test_failed",
+                payload={
+                    "name": request.name,
+                    "category": request.category,
+                    "error": str(e),
+                },
+            )
 
             raise
+
+    def _publish(self, event_type: str, payload: dict):
+        if self.event_bus:
+            self.event_bus.publish(Event(type=event_type, payload=payload))

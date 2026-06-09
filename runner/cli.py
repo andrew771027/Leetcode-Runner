@@ -2,28 +2,17 @@ import os
 
 import typer
 
-from analytics.metrics import Metrics
+import events.subscribers
+import workflow.stages
 from backends.registry import BackendRegistry
 from events.bus import EventBus
 from events.subscribers.file_logger import FileLoggerSubscriber
 from events.subscribers.metrics_collector import MetricsSubscriber
 from factories.builder import RunnerBuilder
-from factories.request_factory import RequestFactory
-from infra.parallel import ParallelExecutor
 from reporters.registry import ReporterRegistry
 from runner.config import RunnerConfig
 from runner.engine import Runner
-from services.artifact_store import ArtifactStore
-from services.discovery import Discovery
-from services.history_store import HistoryStore
-from workflow.pipeline import WorkflowPipeline
-from workflow.stages.artifact import ArtifactStage
-from workflow.stages.discover import DiscoverStage
-from workflow.stages.execute import ExecuteStage
-from workflow.stages.history import HistoryStage
-from workflow.stages.metrics import MetricsStage
-from workflow.stages.report import ReportStage
-from workflow.stages.single_test import SingleTestStage
+from workflow.builder import WorkflowBuilder
 
 DEFAULT_BASE_PATH = os.getenv("LEETCODE_BASE_PATH", "/Users/poyuan/Desktop/andrew771027/LeetCode")
 
@@ -59,54 +48,21 @@ def build_backend(config: RunnerBuilder):
     return backend
 
 
-def build_test_runner(config: RunnerConfig, category: str, problem: str, reporters):
+def build_runner(
+    config: RunnerConfig, reporters, category: str = None, problem: str = None
+) -> Runner:
     backend = build_backend(config)
 
     event_bus = build_event_bus(config)
 
-    request_factory = RequestFactory(config.base_path)
-
-    pipeline = WorkflowPipeline()
-
-    pipeline.add_stage(SingleTestStage(category, problem))
-    pipeline.add_stage(
-        ExecuteStage(
-            executor=ParallelExecutor(),
-            request_factory=request_factory,
-            backend=backend,
-            workers=1,
-            event_bus=event_bus,
-        )
-    )
-    pipeline.add_stage(ArtifactStage(ArtifactStore(config.output_dir)))
-    pipeline.add_stage(ReportStage(reporters))
-
-    return Runner(pipeline)
-
-
-def build_test_all_runner(config: RunnerConfig, reporters):
-    backend = build_backend(config)
-
-    event_bus = build_event_bus(config)
-
-    request_factory = RequestFactory(config.base_path)
-
-    pipeline = WorkflowPipeline()
-
-    pipeline.add_stage(DiscoverStage(Discovery(config.base_path)))
-    pipeline.add_stage(
-        ExecuteStage(
-            executor=ParallelExecutor(),
-            request_factory=request_factory,
-            backend=backend,
-            workers=config.workers,
-            event_bus=event_bus,
-        )
-    )
-    pipeline.add_stage(ArtifactStage(ArtifactStore(config.output_dir)))
-    pipeline.add_stage(HistoryStage(HistoryStore(config.output_dir)))
-    pipeline.add_stage(MetricsStage(Metrics()))
-    pipeline.add_stage(ReportStage(reporters))
+    pipeline = WorkflowBuilder(
+        config=config,
+        backend=backend,
+        reporters=reporters,
+        event_bus=event_bus,
+        category=category,
+        problem=problem,
+    ).build()
 
     return Runner(pipeline)
 
@@ -124,7 +80,7 @@ def test(
 
     reporters = ReporterRegistry.create_many(reporter.split(","))
 
-    runner = build_test_runner(config, category, problem, reporters)
+    runner = build_runner(config=config, reporters=reporters, category=category, problem=problem)
 
     context = runner.run()
 
@@ -144,7 +100,7 @@ def test_all(
 
     reporters = ReporterRegistry.create_many(reporter.split(","))
 
-    runner = build_test_all_runner(config, reporters)
+    runner = build_runner(config=config, reporters=reporters)
 
     context = runner.run()
 

@@ -1,7 +1,9 @@
 from workflow.context import ExecutionContext
+from workflow.registry import StageRegistry
 from workflow.stage import Stage
 
 
+@StageRegistry.register("artifact")
 class ArtifactStage(Stage):
 
     def __init__(self, store):
