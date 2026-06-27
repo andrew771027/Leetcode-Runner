@@ -1,0 +1,28 @@
+flowchart LR
+
+subgraph Presentation
+CLI[Typer CLI]
+end
+
+subgraph Core
+Runner
+ExecutionRequest
+ExecutionResult
+end
+
+subgraph Backend
+PytestBackend
+end
+
+subgraph External
+Pytest
+end
+
+CLI --> ExecutionRequest
+CLI --> Runner
+
+Runner --> PytestBackend
+
+PytestBackend --> Pytest
+
+Pytest --> ExecutionResult

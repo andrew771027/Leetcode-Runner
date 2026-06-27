@@ -1,0 +1,26 @@
+classDiagram
+    class CLI {
+        +parse_args()
+        +main()
+    }
+
+    class TestRunner {
+        +run(test_path: str) ExecutionResult
+    }
+
+    class PytestBackend {
+        +execute(test_path: str) ExecutionResult
+    }
+
+    class ExecutionResult {
+        +test_path: str
+        +exit_code: int
+        +stdout: str
+        +stderr: str
+        +duration: float
+        +is_success() bool
+    }
+
+    CLI --> TestRunner : uses
+    TestRunner --> PytestBackend : uses
+    PytestBackend --> ExecutionResult : returns

@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant User
+    participant CLI
+    participant TestRunner
+    participant PytestBackend
+    participant Pytest
+
+    User->>CLI: python runner.py --test tests/test_two_sum.py
+    CLI->>CLI: parse_args()
+    CLI->>TestRunner: run(test_path)
+    TestRunner->>PytestBackend: execute(test_path)
+    PytestBackend->>Pytest: subprocess.run("pytest test_path")
+    Pytest-->>PytestBackend: exit_code, stdout, stderr
+    PytestBackend-->>TestRunner: ExecutionResult
+    TestRunner-->>CLI: ExecutionResult
+    CLI-->>User: print summary

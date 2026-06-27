@@ -1,0 +1,61 @@
+sequenceDiagram
+    participant User
+    participant CLI
+    participant ConfigLoader
+    participant Builder as RunnerBuilder
+    participant BackendRegistry
+    participant ReporterRegistry
+    participant Runner
+    participant Discovery as TestDiscovery
+    participant Executor as ParallelExecutor
+    participant Backend
+    participant Aggregator as ResultAggregator
+    participant Reporter
+
+    User->>CLI: run command with config path
+    CLI->>ConfigLoader: load(config_path)
+    ConfigLoader-->>CLI: RunnerConfig
+
+    CLI->>BackendRegistry: register subprocess backend
+    CLI->>BackendRegistry: register docker backend
+
+    CLI->>ReporterRegistry: register console reporter
+    CLI->>ReporterRegistry: register analytics reporter
+
+    CLI->>Builder: with_config(config)
+    CLI->>Builder: with_backend_registry(backend_registry)
+    CLI->>Builder: with_reporter_registry(reporter_registry)
+    CLI->>Builder: build()
+
+    Builder->>BackendRegistry: get(config.backend_name)
+    BackendRegistry-->>Builder: Backend
+
+    Builder->>ReporterRegistry: get_many(config.reporter_names)
+    ReporterRegistry-->>Builder: Reporters
+
+    Builder-->>CLI: Runner
+
+    CLI->>Runner: run_all(config.test_dir)
+
+    Runner->>Discovery: discover(test_dir)
+    Discovery-->>Runner: test_paths
+
+    Runner->>Runner: create ExecutionRequest list
+
+    Runner->>Executor: execute_all(requests)
+
+    loop for each request
+        Executor->>Backend: execute(request)
+        Backend-->>Executor: ExecutionResult
+    end
+
+    Executor-->>Runner: results
+
+    Runner->>Aggregator: aggregate(results)
+    Aggregator-->>Runner: Summary
+
+    loop for each reporter
+        Runner->>Reporter: report(summary, results)
+    end
+
+    Reporter-->>User: display output

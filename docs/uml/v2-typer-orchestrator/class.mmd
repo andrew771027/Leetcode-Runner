@@ -1,0 +1,32 @@
+classDiagram
+    class CLI {
+        +parse_args()
+        +create_request()
+        +main()
+    }
+
+    class ExecutionRequest {
+        +test_path: str
+        +working_directory: str
+    }
+
+    class Runner {
+        +run(request: ExecutionRequest) ExecutionResult
+    }
+
+    class PytestBackend {
+        +execute(request: ExecutionRequest) ExecutionResult
+    }
+
+    class ExecutionResult {
+        +exit_code: int
+        +stdout: str
+        +stderr: str
+        +duration: float
+        +is_success()
+    }
+
+    CLI --> ExecutionRequest
+    CLI --> Runner
+    Runner --> PytestBackend
+    PytestBackend --> ExecutionResult

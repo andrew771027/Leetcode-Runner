@@ -1,0 +1,11 @@
+flowchart TD
+    A([Start])
+    A --> B["CLI Parse Arguments"]
+    B --> C["Create ExecutionRequest"]
+    C --> D["Runner.run(request)"]
+    D --> E["PytestBackend.execute(request)"]
+    E --> F["Run pytest via subprocess"]
+    F --> G["Create ExecutionResult"]
+    G --> H["Return to Runner"]
+    H --> I["CLI Print Result"]
+    I --> J([End])

@@ -1,0 +1,20 @@
+flowchart TD
+    A([Start]) --> B[User runs CLI command]
+    B --> C[Parse arguments]
+
+    C --> D{Is test_path provided?}
+    D -- No --> E[Show error message]
+    E --> Z([End])
+
+    D -- Yes --> F[Create TestRunner]
+    F --> G[Run test by test_path]
+    G --> H[Execute pytest using subprocess]
+    H --> I[Collect exit_code, stdout, stderr]
+    I --> J[Create ExecutionResult]
+
+    J --> K{exit_code == 0?}
+    K -- Yes --> L[Print PASSED summary]
+    K -- No --> M[Print FAILED summary]
+
+    L --> Z([End])
+    M --> Z([End])

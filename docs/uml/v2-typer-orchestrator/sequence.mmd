@@ -1,0 +1,27 @@
+sequenceDiagram
+
+participant User
+participant CLI
+participant Runner
+participant Backend
+participant Pytest
+
+User->>CLI: run command
+
+CLI->>CLI: parse args
+
+CLI->>CLI: create ExecutionRequest
+
+CLI->>Runner: run(request)
+
+Runner->>Backend: execute(request)
+
+Backend->>Pytest: subprocess.run()
+
+Pytest-->>Backend: exit_code, stdout
+
+Backend-->>Runner: ExecutionResult
+
+Runner-->>CLI: ExecutionResult
+
+CLI-->>User: display summary

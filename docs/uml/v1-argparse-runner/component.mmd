@@ -1,0 +1,23 @@
+flowchart LR
+    User[User]
+
+    subgraph CLI_Layer[CLI Layer]
+        CLI[argparse CLI]
+    end
+
+    subgraph Runner_Layer[Runner Layer]
+        Runner[TestRunner]
+    end
+
+    subgraph Backend_Layer[Backend Layer]
+        Backend[PytestBackend]
+    end
+
+    subgraph External_Tool[External Tool]
+        Pytest[pytest]
+    end
+
+    User --> CLI
+    CLI --> Runner
+    Runner --> Backend
+    Backend --> Pytest

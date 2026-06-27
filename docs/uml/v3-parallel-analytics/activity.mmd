@@ -1,0 +1,26 @@
+flowchart TD
+    A([Start]) --> B[User runs CLI command]
+    B --> C[CLI parses arguments]
+    C --> D[Runner.run_all test_dir]
+
+    D --> E[TestDiscovery discovers test files]
+    E --> F{Any tests found?}
+
+    F -- No --> G[Print no tests found]
+    G --> Z([End])
+
+    F -- Yes --> H[Create ExecutionRequest list]
+    H --> I[ParallelExecutor executes requests]
+
+    I --> J[Each request runs through PytestBackend]
+    J --> K[Collect ExecutionResult list]
+
+    K --> L[ResultAggregator creates Summary]
+    L --> M[AnalyticsReporter prints analytics]
+
+    M --> N{Any failed tests?}
+    N -- Yes --> O[Print failed test details]
+    N -- No --> P[Print all tests passed]
+
+    O --> Z([End])
+    P --> Z([End])

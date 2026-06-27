@@ -1,0 +1,61 @@
+classDiagram
+    class CLI {
+        +parse_args()
+        +main()
+    }
+
+    class Runner {
+        +run_all(test_dir: str) Summary
+        -create_requests(test_paths: list) list~ExecutionRequest~
+    }
+
+    class TestDiscovery {
+        +discover(test_dir: str) list~str~
+    }
+
+    class ExecutionRequest {
+        +test_path: str
+        +working_directory: str
+    }
+
+    class ParallelExecutor {
+        +execute_all(requests: list~ExecutionRequest~) list~ExecutionResult~
+    }
+
+    class PytestBackend {
+        +execute(request: ExecutionRequest) ExecutionResult
+    }
+
+    class ExecutionResult {
+        +test_path: str
+        +exit_code: int
+        +stdout: str
+        +stderr: str
+        +duration: float
+        +is_success() bool
+    }
+
+    class ResultAggregator {
+        +aggregate(results: list~ExecutionResult~) Summary
+    }
+
+    class Summary {
+        +total: int
+        +passed: int
+        +failed: int
+        +pass_rate: float
+    }
+
+    class AnalyticsReporter {
+        +report(summary: Summary, results: list~ExecutionResult~)
+    }
+
+    CLI --> Runner : uses
+    Runner --> TestDiscovery : discovers tests
+    Runner --> ExecutionRequest : creates
+    Runner --> ParallelExecutor : executes batch
+    ParallelExecutor --> PytestBackend : uses
+    PytestBackend --> ExecutionResult : returns
+    Runner --> ResultAggregator : aggregates
+    ResultAggregator --> Summary : creates
+    Runner --> AnalyticsReporter : reports

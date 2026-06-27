@@ -1,0 +1,43 @@
+flowchart LR
+    subgraph Presentation_Layer[Presentation Layer]
+        CLI[CLI]
+    end
+
+    subgraph Core_Layer[Core Runner Layer]
+        Runner[Runner]
+        Request[ExecutionRequest]
+        Result[ExecutionResult]
+    end
+
+    subgraph Discovery_Layer[Discovery Layer]
+        Discovery[TestDiscovery]
+    end
+
+    subgraph Execution_Layer[Execution Layer]
+        Executor[ParallelExecutor]
+        Backend[PytestBackend]
+    end
+
+    subgraph Reporting_Layer[Reporting Layer]
+        Aggregator[ResultAggregator]
+        Summary[Summary]
+        Reporter[AnalyticsReporter]
+    end
+
+    subgraph External_Tool[External Tool]
+        Pytest[pytest]
+    end
+
+    CLI --> Runner
+
+    Runner --> Discovery
+    Runner --> Request
+    Runner --> Executor
+
+    Executor --> Backend
+    Backend --> Pytest
+    Backend --> Result
+
+    Runner --> Aggregator
+    Aggregator --> Summary
+    Runner --> Reporter

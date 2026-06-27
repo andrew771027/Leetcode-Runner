@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant User
+    participant CLI
+    participant Runner
+    participant Discovery as TestDiscovery
+    participant Executor as ParallelExecutor
+    participant Backend as PytestBackend
+    participant Aggregator as ResultAggregator
+    participant Reporter as AnalyticsReporter
+
+    User->>CLI: run command with test_dir
+    CLI->>CLI: parse arguments
+    CLI->>Runner: run_all(test_dir)
+
+    Runner->>Discovery: discover(test_dir)
+    Discovery-->>Runner: test_paths
+
+    Runner->>Runner: create ExecutionRequest list
+
+    Runner->>Executor: execute_all(requests)
+
+    loop for each request
+        Executor->>Backend: execute(request)
+        Backend-->>Executor: ExecutionResult
+    end
+
+    Executor-->>Runner: results
+
+    Runner->>Aggregator: aggregate(results)
+    Aggregator-->>Runner: Summary
+
+    Runner->>Reporter: report(summary, results)
+    Reporter-->>User: print analytics

@@ -1,0 +1,40 @@
+flowchart TD
+    A([Start]) --> B[User runs CLI command]
+
+    B --> C[CLI parses arguments]
+    C --> D[Load runner config]
+
+    D --> E[Initialize BackendRegistry]
+    E --> F[Register SubprocessBackend]
+    F --> G[Register DockerBackend]
+
+    G --> H[Initialize ReporterRegistry]
+    H --> I[Register ConsoleReporter]
+    I --> J[Register AnalyticsReporter]
+
+    J --> K[RunnerBuilder receives config and registries]
+    K --> L[Select backend from BackendRegistry]
+    L --> M[Select reporters from ReporterRegistry]
+    M --> N[Build Runner]
+
+    N --> O[TestDiscovery discovers test files]
+    O --> P{Any tests found?}
+
+    P -- No --> Q[Print no tests found]
+    Q --> Z([End])
+
+    P -- Yes --> R[Create ExecutionRequest list]
+    R --> S[ParallelExecutor executes requests]
+
+    S --> T[Selected Backend executes each request]
+    T --> U[Collect ExecutionResult list]
+
+    U --> V[ResultAggregator creates Summary]
+    V --> W[Each Reporter prints result or analytics]
+
+    W --> X{Any failed tests?}
+    X -- Yes --> Y[Print failed test details]
+    X -- No --> AA[Print all tests passed]
+
+    Y --> Z([End])
+    AA --> Z([End])

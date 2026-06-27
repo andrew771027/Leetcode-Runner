@@ -1,0 +1,74 @@
+flowchart LR
+    subgraph Presentation_Layer[Presentation Layer]
+        CLI[CLI]
+    end
+
+    subgraph Configuration_Layer[Configuration Layer]
+        ConfigLoader[ConfigLoader]
+        RunnerConfig[RunnerConfig]
+    end
+
+    subgraph Composition_Layer[Composition Layer]
+        RunnerBuilder[RunnerBuilder]
+        BackendRegistry[BackendRegistry]
+        ReporterRegistry[ReporterRegistry]
+    end
+
+    subgraph Core_Layer[Core Runner Layer]
+        Runner[Runner]
+        Request[ExecutionRequest]
+        Result[ExecutionResult]
+    end
+
+    subgraph Discovery_Layer[Discovery Layer]
+        Discovery[TestDiscovery]
+    end
+
+    subgraph Execution_Layer[Execution Layer]
+        Executor[ParallelExecutor]
+        BackendInterface[Backend Interface]
+        SubprocessBackend[SubprocessBackend]
+        DockerBackend[DockerBackend]
+    end
+
+    subgraph Reporting_Layer[Reporting Layer]
+        Aggregator[ResultAggregator]
+        Summary[Summary]
+        ReporterInterface[Reporter Interface]
+        ConsoleReporter[ConsoleReporter]
+        AnalyticsReporter[AnalyticsReporter]
+    end
+
+    subgraph External_Tools[External Tools]
+        Pytest[pytest]
+        Docker[Docker]
+    end
+
+    CLI --> ConfigLoader
+    ConfigLoader --> RunnerConfig
+
+    CLI --> RunnerBuilder
+    RunnerBuilder --> BackendRegistry
+    RunnerBuilder --> ReporterRegistry
+    RunnerBuilder --> RunnerConfig
+    RunnerBuilder --> Runner
+
+    Runner --> Discovery
+    Runner --> Request
+    Runner --> Executor
+    Runner --> Aggregator
+    Runner --> ReporterInterface
+
+    Executor --> BackendInterface
+    BackendInterface --> SubprocessBackend
+    BackendInterface --> DockerBackend
+
+    SubprocessBackend --> Pytest
+    DockerBackend --> Docker
+
+    Aggregator --> Summary
+
+    ReporterInterface --> ConsoleReporter
+    ReporterInterface --> AnalyticsReporter
+
+    BackendInterface --> Result

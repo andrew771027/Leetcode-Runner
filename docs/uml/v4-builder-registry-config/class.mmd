@@ -1,0 +1,131 @@
+classDiagram
+    class CLI {
+        +parse_args()
+        +main()
+    }
+
+    class ConfigLoader {
+        +load(config_path: str) RunnerConfig
+    }
+
+    class RunnerConfig {
+        +backend_name: str
+        +reporter_names: list~str~
+        +test_dir: str
+        +parallel_workers: int
+        +timeout: int
+    }
+
+    class RunnerBuilder {
+        +with_config(config: RunnerConfig) RunnerBuilder
+        +with_backend_registry(registry: BackendRegistry) RunnerBuilder
+        +with_reporter_registry(registry: ReporterRegistry) RunnerBuilder
+        +build() Runner
+    }
+
+    class BackendRegistry {
+        +register(name: str, backend: Backend)
+        +get(name: str) Backend
+    }
+
+    class ReporterRegistry {
+        +register(name: str, reporter: Reporter)
+        +get_many(names: list~str~) list~Reporter~
+    }
+
+    class Runner {
+        +run_all(test_dir: str) Summary
+    }
+
+    class TestDiscovery {
+        +discover(test_dir: str) list~str~
+    }
+
+    class ParallelExecutor {
+        +execute_all(requests: list~ExecutionRequest~) list~ExecutionResult~
+    }
+
+    class Backend {
+        <<interface>>
+        +execute(request: ExecutionRequest) ExecutionResult
+    }
+
+    class SubprocessBackend {
+        +execute(request: ExecutionRequest) ExecutionResult
+    }
+
+    class DockerBackend {
+        +execute(request: ExecutionRequest) ExecutionResult
+    }
+
+    class ExecutionRequest {
+        +test_path: str
+        +working_directory: str
+        +timeout: int
+        +environment: dict
+    }
+
+    class ExecutionResult {
+        +test_path: str
+        +backend_name: str
+        +exit_code: int
+        +stdout: str
+        +stderr: str
+        +duration: float
+        +is_success() bool
+    }
+
+    class ResultAggregator {
+        +aggregate(results: list~ExecutionResult~) Summary
+    }
+
+    class Summary {
+        +total: int
+        +passed: int
+        +failed: int
+        +pass_rate: float
+        +slowest_test: str
+    }
+
+    class Reporter {
+        <<interface>>
+        +report(summary: Summary, results: list~ExecutionResult~)
+    }
+
+    class ConsoleReporter {
+        +report(summary: Summary, results: list~ExecutionResult~)
+    }
+
+    class AnalyticsReporter {
+        +report(summary: Summary, results: list~ExecutionResult~)
+    }
+
+    CLI --> ConfigLoader : loads config
+    CLI --> RunnerBuilder : builds runner
+
+    ConfigLoader --> RunnerConfig : creates
+
+    RunnerBuilder --> RunnerConfig : uses
+    RunnerBuilder --> BackendRegistry : selects backend
+    RunnerBuilder --> ReporterRegistry : selects reporters
+    RunnerBuilder --> Runner : creates
+
+    BackendRegistry --> Backend : stores
+    ReporterRegistry --> Reporter : stores
+
+    Runner --> TestDiscovery : discovers
+    Runner --> ParallelExecutor : executes
+    Runner --> ResultAggregator : aggregates
+    Runner --> Reporter : reports
+
+    ParallelExecutor --> Backend : uses
+
+    Backend <|.. SubprocessBackend
+    Backend <|.. DockerBackend
+
+    Backend --> ExecutionResult : returns
+
+    ResultAggregator --> Summary : creates
+
+    Reporter <|.. ConsoleReporter
+    Reporter <|.. AnalyticsReporter
