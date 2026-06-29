@@ -11,6 +11,8 @@ class RunnerConfig:
     workers: int = 4
     output_dir: str = "output"
 
+    middleware: list[str] = field(default_factory=lambda: ["retry", "benchmark"])
+
     workflow: list[str] = field(
         default_factory=lambda: [
             "discover",
@@ -21,6 +23,8 @@ class RunnerConfig:
             "report",
         ]
     )
+
+    reporters: list[str] = field(default_factory=lambda: ["console"])
 
     event_subscribers: dict = field(
         default_factory=lambda: {

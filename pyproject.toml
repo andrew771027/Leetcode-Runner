@@ -16,6 +16,7 @@ packages = [
 python = ">=3.14"
 pre-commit = ">=4.6.0,<5.0.0"
 typer = ">=0.25.1,<0.26.0"
+yyaml = "^0.0.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

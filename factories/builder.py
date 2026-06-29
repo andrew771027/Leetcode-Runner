@@ -12,9 +12,8 @@ class RunnerBuilder:
         self._backend = name
         return self
 
-    def with_middleware(self, name):
-        if name not in self._middlewares:
-            self._middlewares.append(name)
+    def with_middlewares(self, middlewares: list[str]):
+        self._middlewares = middlewares
         return self
 
     def build_backend(self):

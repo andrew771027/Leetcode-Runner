@@ -38,7 +38,7 @@ class WorkflowBuilder:
         return pipeline
 
     def _create_stage(self, name: str):
-        common = {
+        stage_args = {
             "discover": dict(
                 discovery=Discovery(self.config.base_path),
                 category=self.category,
@@ -61,4 +61,7 @@ class WorkflowBuilder:
             ),
         }
 
-        return StageRegistry.create(name, **common[name])
+        if name not in stage_args:
+            raise ValueError(f"Unknown workflow stage config: {name}")
+
+        return StageRegistry.create(name, **stage_args[name])

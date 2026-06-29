@@ -15,8 +15,8 @@ class SubscriberRegistry:
         if name not in cls._registry:
             raise ValueError(f"Unknown subscriber: {name}. " f"Available: {cls.available()}")
 
-        return cls._registry[name]()(**kwargs)
+        return cls._registry[name](**kwargs)
 
     @classmethod
     def available(cls):
-        return list(cls._registry.keys)
+        return list(cls._registry.keys())

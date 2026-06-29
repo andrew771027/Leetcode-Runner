@@ -1,0 +1,29 @@
+base_path: /Users/poyuan/Desktop/andrew771027/Leetcode
+backend: subprocess
+workers: 4
+output_dir: output
+
+middleware:
+  - retry
+  - benchmark
+
+workflow:
+  - discover
+  - execute
+  - artifact
+  - history
+  - metrics
+  - report
+
+reporters:
+  - console
+  - json
+
+events:
+  test_started:
+    - file_logger
+  test_finished:
+    - file_logger
+    - metrics
+  test_failed:
+    - file_logger
